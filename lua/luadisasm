@@ -1,0 +1,699 @@
+#!/usr/bin/perl
+# $Id: luadisasm,v 1.28 2008/05/30 07:15:37 misch Exp misch $
+use strict;
+use Data::Dumper;
+
+select STDERR; $|=1;
+select STDOUT; $|=1;
+
+our @R = ();
+our $Gbl = {
+	require => "require",
+	print => "print",
+	string => "string",
+	math => {
+		modf => "modf"
+	},
+	tonumber => "tonumber",
+	ipairs => "ipairs",
+	os => {
+		date => "date"
+	},
+	io => {
+		open => "open"
+	},
+	Env => {
+		_type => 'Env',
+		Device => 'Windows PPC'
+	},
+	Wherigo => {
+		_type => 'Wherigo',
+		Zone => {_type => 'Zone'},
+		ZonePoint => {_type => 'ZonePoint'},
+		ZInput => {_type => 'ZInput'},
+		ZCartridge => {_type => 'ZCartridge'},
+		ZMedia => {_type => 'ZMedia'},
+		Distance => {_type => 'Distance'},
+		Messagebox => {_type => 'Messagebox'},
+	}
+};
+our %function_by_address = ();
+our %comment_by_pc = ();
+
+sub textORreg($$) {
+	my ($R, $txt) = @_;
+	if ($R >= 0) {
+		return 'R' . $R;
+	} else {
+		return $txt;
+	};
+};
+
+# niceregvalue(1) = Global["Wherigo"].require
+# # pokud je R1 = ["Wherigo", "require"]
+sub nicevalue($;$) {
+	my ($val, $omezit_quotovani) = @_;
+	#warn "niceregvalue($num ... $val)";
+	if (!defined $val) {
+		#return "<!uninitialized value, probably some pseudo-global register!>";
+		return "<local_variable, contains 0 at start>";
+	} elsif (ref($val) eq 'ARRAY') {
+		if ($#${val} < 0) {
+			# prazdne pole
+			return "{}";
+		} else {
+			# sekvence indexu
+			return join('.', map {nicevalue($_, 1)} @{$val});
+		};
+	} elsif (ref($val) eq 'HASH') {
+		my $ret;
+		if ($val->{_type} eq 'closure') {
+			$ret .= "function_" . $val->{addr};
+		} else {
+			$ret = "some " . $val->{_type};
+		};
+		return $ret;
+	} elsif (ref($val) eq 'global') {
+		# nazev globalu, tzn. bez uvozovek
+		return $$val;
+	} elsif (ref($val) eq 'parameter') {
+		# parametr funkce
+		return '<fn_param_'.$$val.'>';
+	} elsif (ref($val) eq 'Wherigo.ZonePoint') {
+		return "ZonePoint($val->{N}, $val->{E})";
+	} else {
+		if ($val == 0) {	# neni to cislo
+			if ($omezit_quotovani) {
+				if ($val =~ /[^A-Za-z0-9_]/) {
+					# obsahuje divne znaky
+					return '"' . $val . '"';	# konstanta by vzdycky mela byt v uvozovkach, ne?
+				} else {
+					return $val;
+				};
+			} else {
+				$val =~ s/\\/\\\\/g;	# double backslash
+				$val =~ s/"/\\"/g;	# uvozovky
+				return '"' . $val . '"';	# konstanta by vzdycky mela byt v uvozovkach, ne?
+			};
+		} else {
+			return $val;	# cislo
+		};
+	};
+};
+
+sub reset_registers($) {
+	my ($nparams) = @_;
+	@R = ();
+	foreach my $i (0 .. ($nparams-1)) {
+		$R[$i] = [ bless(\$i, 'parameter') ];
+	};
+	%comment_by_pc = ();
+};
+
+sub comment_for_pc($$) {
+	my ($pc, $cmt) = @_;
+	$comment_by_pc{$pc} = [] if !exists $comment_by_pc{$pc};
+	push @{$comment_by_pc{$pc}}, $cmt;
+};
+
+reset_registers(0);
+my $fullindent = (" " x 24);
+my $priste_bude_else = "";
+my %calls = ();
+my $last_src_line = -1;
+while (<STDIN>) { # {{{
+	chomp;
+	if (/^\s+(\d+)\s+\[(\d+)\]\s+(\w+)\s+(.*?)(?:;(.+))?$/) {
+		my ($pc, $src_line, $opcode, $par, $textpar) = ($1, $2, $3, $4, $5);
+#		print ";", $_, "\n";
+#
+#		# vysledek:
+#		a) co to vlastne dela:
+#		   Global["ABC"] = "efg"
+#		b) vnitrek:
+#		   Global[R2] = R3
+#		zobrazovat by se asi melo oboji ..., hlavne u CALL apod. by se to hodilo. Jak na to?
+#		A taky by se hodil i puvodni kod, kvuli ladeni chyb...
+#
+#		Taky by bylo dobre misto tohoto:
+#		   if (a == b) then SKIP
+#		   jmp YYY
+#		zobrazovat spis:
+#		   if (a != b) then jmp YYY;
+
+		if (exists $comment_by_pc{$pc}) {
+			foreach (@{$comment_by_pc{$pc}}) {
+				print "; $_\n";
+			};
+		};
+
+		my @out = ();	# vytistene instrukce
+
+		my @arg = ();
+		$par =~ s/^\s+//;
+		$par =~ s/\s+$//;
+		@arg = split /\s+/, $par;
+
+		my @textarg = ();
+		$textpar =~ s/^\s+//;
+		$textpar =~ s/\s+$//;
+		while ($textpar ne '') {
+			if ($textpar =~ s/^"//) {
+				# uz jsem nacetl a zrusil uvodni uvozovky, ted najdu kde konci
+				my $t = '';
+				while ((my $c = substr($textpar, 0, 1, '')) ne '') {
+					if ($c eq '"') {
+						last;
+					} elsif ($c eq '\\') {
+						$c = substr($textpar, 0, 1, '');
+					};
+					$t .= $c;
+				};
+				push @textarg, $t;
+			} elsif ($textpar =~ s/^nil$//) {
+				push @textarg, undef;
+			} elsif ($textpar =~ s/^-$//) {
+				# volajici fce mela zavolat textORreg a ne sahat primo na parametr!
+				push @textarg, "(internal error, not_a_constant, see_register)";
+			} elsif ($textpar =~ s/^(\S+)//) {
+				push @textarg, $1;
+			} else {
+				die ">$textpar<";
+			};
+			$textpar =~ s/\s+$//;
+			$textpar =~ s/^\s+//;
+		};
+		my @qtextarg = map {defined($_) ? nicevalue($_) : 'nil'} @textarg;	# vzdy oquotovane
+		my @cqtextarg = map {defined($_) ? nicevalue($_, 1) : 'nil'} @textarg;	# podminene oquotovane
+
+		if ($opcode eq 'GETGLOBAL') {
+			# R(A) := Gbl[Kst(Bx)]
+			push @out, {
+				instrukce => sprintf("R%d = Global.%s", $arg[0], $cqtextarg[0])
+			};
+
+			if (exists $Gbl->{$textarg[0]}) {
+				$out[-1]->{detail} = nicevalue($Gbl->{$textarg[0]});
+			} else {
+				$out[-1]->{komentar} = "WARN: unknown global $qtextarg[0]";
+			};
+
+			#$R[$arg[0]] = x[$Gbl->{$textarg[0]};
+			$R[$arg[0]] = [bless(\$textarg[0], 'global')];	# jen jeden parametr
+
+		} elsif ($opcode eq 'SETGLOBAL') {
+			# Gbl[Kst(Bx)] := R(A)
+			push @out, {
+				instrukce => sprintf("Global.%s = R%d", $cqtextarg[0], $arg[0]),
+				detail => nicevalue($R[$arg[0]])
+			};
+#			$Gbl->{$textarg[0]} = $R[$arg[0]];
+			# prece jen, at to nehlasi "unknown global":
+			$Gbl->{$textarg[0]} = $R[$arg[0]];
+			if (ref($Gbl->{$textarg[0]}) eq 'HASH') {
+				if ($Gbl->{$textarg[0]}->{_type} eq 'closure') {
+					my $addr = $Gbl->{$textarg[0]}->{addr};
+					$function_by_address{$addr} = $textarg[0];	# $function_by_address{"0x12345678"} = "nazev_funkce"
+				};
+			};
+
+		} elsif ($opcode eq 'GETTABLE') {
+			# R(A) := R(B)[RK(C)]
+			#$R[$arg[0]] = $R[$arg[1]]->{$textarg[0]};
+			#warn Dumper($R[$arg[1]]);
+			#
+			# ["Wherigo", "Player"]:
+			if ($arg[2] >= 0) {
+				push @out, {
+					instrukce => sprintf("R%d = R%d[R%d]", $arg[0], $arg[1], $arg[2])
+				};
+			} else {
+				if ($textarg[0] > 0) {	 # je to cislo
+					push @out, {
+						instrukce => sprintf("R%d = R%d[%d]", $arg[0], $arg[1], $textarg[0])
+					};
+				} else {
+					# je to textovy index
+					push @out, {
+						instrukce => sprintf("R%d = R%d.%s", $arg[0], $arg[1], $cqtextarg[0])
+					};
+				};
+			};
+			if (ref $R[$arg[1]]) {
+				$out[-1]->{detail} = nicevalue($R[$arg[1]])
+			} else {
+				$out[-1]->{komentar} = "WARN: unknown table in R$arg[1]";
+				$R[$arg[1]] = [];
+			};
+
+			$R[$arg[0]] = [ @{$R[$arg[1]]} ];
+			if ($arg[2] >= 0) {
+				if (ref($R[$arg[2]]) eq 'ARRAY') {
+					push @{$R[$arg[0]]}, @{$R[$arg[2]]};
+				} else {
+					push @{$R[$arg[0]]}, $R[$arg[2]];
+				};
+			} else {
+				push @{$R[$arg[0]]}, $textarg[0];
+			};
+
+		} elsif ($opcode eq 'LOADK') {
+			# R(A) := Kst(Bx)
+			push @out, {
+				instrukce => sprintf("R%d = %s", $arg[0], $qtextarg[0])
+			};
+			$R[$arg[0]] = $textarg[0];
+
+		} elsif ($opcode eq 'NEWTABLE') {
+			# R(A) := {} (size = B,C)
+			push @out, {
+				instrukce => sprintf("R%d = {}", $arg[0]),
+				komentar => "empty table"
+			};
+			$R[$arg[0]] = [ {_type => 'table'} ];	# bez inicializace
+
+		} elsif ($opcode eq 'SETTABLE') {
+			# R(A)[RK(B)] := RK(C)
+			push @out, {
+				instrukce => sprintf("R%d.%s = %s",
+					$arg[0], textORreg($arg[1], $cqtextarg[0]), textORreg($arg[2], $qtextarg[1])
+					),
+				detail => sprintf("%s.%s = %s",
+					nicevalue($R[$arg[0]]), 
+					(($arg[1] >= 0) ? nicevalue($R[$arg[1]]) : $cqtextarg[0]),
+					(($arg[2] >= 0) ? nicevalue($R[$arg[2]]) : $qtextarg[1])
+					),
+			};
+
+			if ($arg[2] >= 0) {
+				# R0[R1] = R2     ; cartDelovakoulenaSpilberku."MsgBoxCBFuncs"["MsgBoxCB15"] = function_0x87d3648
+				my $v = $R[$arg[2]];
+				if (ref($v) eq 'HASH') {
+					if ($v->{_type} eq 'closure') {
+						my $addr = $v->{addr};
+						# $function_by_address{"0x12345678"} = "nazev_funkce"
+						$function_by_address{$addr} = sprintf("%s[%s]", nicevalue($R[$arg[0]], 1), (($arg[1] >= 0) ? nicevalue($R[$arg[1]]) : $qtextarg[0]));
+					};
+				};
+			};
+
+			if (!ref $R[$arg[0]]) {
+				$R[$arg[0]] = [];
+			};
+
+			#$R[$arg[0]]->{ textORreg($arg[1], $textarg[0]) } = textORreg($arg[2], $textarg[1]);
+			#
+			# drive: ['a', 'b']
+			# nove: ['a',' b', 'arg0']
+			#
+			# coz je samozrejme uplne blbe, melo by to byt neco jako:
+			# ['a', 'b'], a jinde by se pamatovalo {attr => value, attr => value, ..}
+			#push @{$R[$arg[0]]}, (textORreg($arg[1], $textarg[0]));
+
+		} elsif ($opcode eq 'SETLIST') {
+			# R(A)[(C-1)*FPF+i] := R(A+i), 1 <= i <= B
+			# SETLIST         1 1 1   ; 1 
+			my $konst = $arg[2]-1;
+			if ($konst == 0) {
+				$konst = "";
+			} else {
+				$konst = "+${konst}*FPF";
+			};
+			push @out, {
+				instrukce => sprintf("R%d = %s", 
+					$arg[0],
+					($arg[1] == 0) ? 
+						sprintf("{%d${konst}:R%d .. <top>}", 1, $arg[0]+1)
+						:
+						'[' . join(", ", map {sprintf("R%d", $arg[0]+$_)} (1 .. $arg[1])) . ']'
+				),
+				komentar => "SETLIST $arg[0] $arg[1] $arg[2]"
+			};
+			$R[$arg[0]] = [ {_type => 'array'} ];
+			# (SETLIST $arg[0] $arg[1] $arg[2])\n";
+
+		} elsif ($opcode eq 'LOADBOOL') {
+			# R(A) := (Bool)B; if (C) pc++
+			push @out, {
+				instrukce => sprintf("R%d = %s", $arg[0], ($arg[1] ? 'TRUE' : 'FALSE'))
+			};
+			if ($arg[2] > 0) {
+				push @out, {
+					instrukce => 'SKIP NEXT'
+				};
+			};
+			$R[$arg[0]] = $arg[1] ? 'TRUE' : 'FALSE';
+
+		} elsif ($opcode eq 'MOVE') {
+			#  R(A) := R(B)
+			push @out, {
+				instrukce => sprintf("R%d = R%d", $arg[0], $arg[1]),
+				detail => sprintf("%s", nicevalue($R[$arg[1]]))
+			};
+			$R[$arg[0]] = $R[$arg[1]];
+
+		} elsif ($opcode eq 'CONCAT') {
+			# R(A) := R(B).. ... ..R(C)
+			push @out, {
+				instrukce => sprintf("R%d = %s", 
+					$arg[0],
+					join(" .. ", map {sprintf("R%d", $_)} ($arg[1] .. $arg[2]))
+				),
+				komentar => "CONCAT"
+			};
+			$R[$arg[0]] = [{_type => "result_of_CONCAT_at_${src_line}"}];
+		} elsif ($opcode eq 'LOADNIL') {
+			# R(A) := ... := R(B) := nil
+			push @out, {
+				instrukce => sprintf("R%d .. R%d = nil", $arg[0], $arg[1])
+			};
+
+		} elsif ($opcode eq 'TEST') {
+			# if not (R(A) <=> C) then pc++
+			#
+			# TEST            1 0 0
+			# TEST            1 0 1
+			if ($arg[2] == 0) {
+				push @out, {
+					instrukce => sprintf("if (R%d) then SKIP", $arg[0]),
+				};
+				comment_for_pc($pc+2, sprintf("if (R%d)", $arg[0]));
+				$priste_bude_else = sprintf("if NOT (R%d)", $arg[0]);
+			} else {
+				push @out, {
+					instrukce => sprintf("if (not R%d) then SKIP", $arg[0]),
+				};
+				comment_for_pc($pc+2, sprintf("if (not R%d)", $arg[0]));
+				$priste_bude_else = sprintf("if (R%d)", $arg[0]);
+			};
+
+		# tri podobne operace:
+		} elsif ($opcode =~ /^(EQ|LT|LE)$/) {
+			# if ((RK(B) == RK(C)) ~= A) then pc++
+			my %instr = (
+				EQ => ['==', '!='],
+				LT => ['<', '>='],
+				LE => ['<=', '>'],
+			);
+		
+			if (($arg[0] == 0) || ($arg[0] == 1)) {
+				push @out, {
+					instrukce => sprintf("if (%s %s %s) then SKIP", 
+						textORreg($arg[1], $qtextarg[0]), $instr{$opcode}->[$arg[0]], textORreg($arg[2], $qtextarg[1])
+					)
+				};
+				comment_for_pc($pc+2, sprintf("if (%s %s %s)", 
+					textORreg($arg[1], $qtextarg[0]), $instr{$opcode}->[$arg[0]], textORreg($arg[2], $qtextarg[1])));
+				$priste_bude_else = sprintf("if (%s %s %s)", 
+					# 1-x zaridi negaci:
+					textORreg($arg[1], $qtextarg[0]), $instr{$opcode}->[1-$arg[0]], textORreg($arg[2], $qtextarg[1]));
+			} else {
+				push @out, {
+					instrukce => sprintf("if ((%s %s %s) ~= %d) then SKIP", 
+						textORreg($arg[1], $qtextarg[0]), $instr{$opcode}->[0], textORreg($arg[2], $qtextarg[1]), $arg[0]
+					),
+					komentar => "WARN: unknown comparison variant"
+				};
+				$priste_bude_else = "else (unknown variant)";
+			};
+
+		} elsif ($opcode =~ /^(SUB|ADD|MUL|DIV|MOD|POW)$/) {
+			my %instr = (
+				ADD => '+',
+				SUB => '-',
+				MUL => '*',
+				DIV => '/',
+				MOD => '%',
+				POW => '^'
+			);
+			# R(A) := RK(B) - RK(C)
+			#
+			# TODO je-li arg[0] == $arg[1], zjednodusit na "+=", "*=", atd.
+			push @out, {
+				instrukce => sprintf("R%d = %s %s %s", 
+					$arg[0], textORreg($arg[1], $textarg[0]), $instr{$opcode}, textORreg($arg[2], $textarg[1])
+				),
+			};
+			$R[$arg[0]] = [ {_type => "numeric value" } ];
+
+		} elsif ($opcode eq 'JMP') {
+			if ($priste_bude_else ne '') {
+				push @out, {
+					instrukce => 'else'
+				};
+				comment_for_pc($textarg[1], $priste_bude_else);	# textovy popis
+			};
+			push @out, {
+				instrukce => sprintf("JMP to line %d", $textarg[1]),
+			};
+			comment_for_pc($textarg[1], "jmp from $pc");
+			$priste_bude_else = "";
+
+		} elsif ($opcode eq 'CLOSURE') {
+			# CLOSURE         1 0     ; 0x87cd528
+			# R(A) := closure(KPROTO[Bx], R(A), ... ,R(A+n))
+			push @out, {
+				instrukce => sprintf("R%d = function(%s, ...)", $arg[0], $textarg[0]),
+				komentar => "B=$arg[1]"
+			};
+			# FIXME chybi dalsi parametry
+			$R[$arg[0]] = {_type => 'closure', addr => $textarg[0]};
+
+		} elsif ($opcode eq 'TFORLOOP') {
+			# 34      [1849]  TFORLOOP        3 2
+			#
+			# R(A+3), ... ,R(A+2+C) := R(A)(R(A+1), R(A+2));
+			#   if R(A+3) ~= nil then R(A+2)=R(A+3) else pc++
+			push @out, {
+				instrukce => sprintf("R%d, ..., R%d = R%d(R%d, R%d)", $arg[0]+3, $arg[0]+2+$arg[1], $arg[0], $arg[0]+1, $arg[0]+2),
+				detail => sprintf("", ),
+				komentar => "$opcode"
+			};
+			push @out, {
+				instrukce => sprintf("if (R%d) ~= nil then R%d=R%d", $arg[0]+3, $arg[0]+2, $arg[0]+3)
+			};
+			push @out, {
+				instrukce => sprintf("%s", "else SKIP")
+			};
+
+		} elsif ($opcode eq 'FORPREP') {
+			# FORPREP         11 59   ; to 79
+			# R(A)-=R(A+2); pc+=sBx
+			push @out, {
+				instrukce => sprintf("R%d -= R%d", $arg[0], $arg[0]+2),
+				komentar => "start of FOR loop"
+			};
+			push @out, {
+				instrukce => sprintf("JMP %d", $textarg[1]),	# 0 je text "to"
+			};
+			comment_for_pc($textarg[1], "start or FOR loop at line $pc");
+
+		} elsif ($opcode eq 'FORLOOP') {
+			# FORLOOP         11 -60  ; to 20
+			# R(A)+=R(A+2);
+			# if R(A) <?= R(A+1) then { pc+=sBx; R(A+3)=R(A) }
+			push @out, {
+				instrukce => sprintf("R%d += R%d", $arg[0], $arg[0]+2),
+				komentar => "end of FOR loop"
+			};
+			push @out, {
+				instrukce => sprintf("if R%d <?= R%d then {R%d = R%d; JMP %d}", $arg[0], $arg[0]+1, $arg[0]+3, $arg[0], $textarg[1]),
+			};
+
+		} elsif ($opcode eq 'SELF') {
+			# R(A+1) := R(B); R(A) := R(B)[RK(C)]
+			#warn Dumper($Gbl);
+			push @out, {
+				instrukce => sprintf("R%d = R%d, R%d = R%d[%s]", $arg[0]+1, $arg[1], $arg[0], $arg[1], $qtextarg[0])
+			};
+			# FIXME
+			$R[$arg[0]+1] = $R[$arg[1]];
+			if (!ref($R[$arg[1]])) {
+				$R[$arg[1]] = [];	# FIXME at to nepada
+			};
+			$R[$arg[0]] = [ @{$R[$arg[1]]}, $textarg[0] ];
+
+		} elsif ($opcode eq 'RETURN') {
+			# RETURN          0 2 
+			# return R(A), ... ,R(A+B-2)  (see note)
+			if ($arg[0]+$arg[1]-2 >= $arg[0]) {
+				push @out, {
+					instrukce => sprintf("RETURN(%s)", join(', ', map {"R".$_} ($arg[0] .. ($arg[0]+$arg[1]-2)))),
+				};
+			} else {
+				push @out, {
+					instrukce => "RETURN"
+				};
+			};
+			if ($arg[1] == 0) {
+				$out[-1]->{komentar} = 'to top';
+			} else {
+				$out[-1]->{komentar} = "to ??? (args=$arg[0], $arg[1])";
+			};
+
+		} elsif ($opcode eq 'TAILCALL') {
+			# TAILCALL 1 7 0
+			# OP_TAILCALL   A B C   return R(A)(R(A+1), ... ,R(A+B-1))
+			# FIXME tzn. C se ignoruje?
+			push @out, {
+				instrukce => sprintf("RETURN %s(%s)", 
+					nicevalue($R[$arg[0]]),
+					($arg[1] == 0) ?
+						"<top>"
+						:
+						join(', ', map {nicevalue($R[$_])} ($arg[0]+1 .. ($arg[0]+$arg[1]-1)))
+				),
+				detail => sprintf("RETURN R%d(A=$arg[0] .. B=$arg[1])", $arg[0]),
+				komentar => "TAILCALL $arg[0], $arg[1], $arg[2]"
+			};
+			$calls{ nicevalue($R[$arg[0]], 1) } = 1;
+
+		} elsif ($opcode eq 'CALL') {
+			# R(A), ... ,R(A+C-2) := R(A)(R(A+1), ... ,R(A+B-1))
+			# R(A), ... ,R(A+C-2) := R(A)(R(A+1), ... ,R(A+B-1))
+			my $dst0 = $arg[0];
+			my $dst9 = $arg[0] + $arg[2] - 2;
+			
+			if ($arg[2] == 0) {
+				# C can be 0: OP_CALL then sets `top' to last_result+1, so next open instruction (OP_CALL, OP_RETURN, OP_SETLIST) may use `top'
+				# CALL 5 4 0
+				# tzn.:
+				# top = R5(R6 .. R8)
+				#FIXME spravne zobrazit!
+			};
+
+			my $src0 = $arg[0]+1;
+			my $src9 = $arg[0]+$arg[1]-1;
+
+			#warn "calling $dst0, $dst9, $src0, $src9, $R[$arg[0]]";
+
+			# volana fce:
+			my $fce = nicevalue($R[$arg[0]], 1);
+			if ($fce eq '') {
+				$fce = "(obsah_registru_$arg[0])";
+			};
+			$calls{ $fce } = 1;
+
+			# cile:
+			my $instr = '';
+			if ($dst0 <= $dst9) {
+				$instr .= "" .join(', ', map {"R".$_} ($dst0 .. $dst9));
+				$instr .= " = ";
+			} elsif ($arg[2] == 0) {
+				# cilem je <top> a nastavuje se na udajne last_result+1, coz nechapu co to znamena
+				$instr .= "<top> = ";
+			} else {
+				# vysledek se nikam neprirazuje
+			};
+			$instr .= "${fce}(";
+
+			# parametry funkce:
+			if ($src0 <= $src9) {
+				$instr .= join(', ', map {nicevalue($_)} @R[$src0 .. $src9]
+				);
+			} elsif ($arg[1] == 0) {
+				# parametrem je <top>, tzn. hodnota z minuleho callu apod.
+				$instr .= "<top>";
+			} else {
+				# bez parametru
+			};
+			$instr .= ")";
+			#$R[$dst0] = 'result of function call';
+			
+			# a nasimuluji to volani
+			foreach my $i ($dst0 .. $dst9) {
+				$R[$i] = [{_type => "result_of_CALL_${fce}_at_${src_line}"}];
+			};
+			# nektere specialni varianty upravim do citelnejsiho tvaru:
+			if (($fce eq 'ZonePoint') || ($fce eq 'Wherigo.ZonePoint')) {
+				if ($dst0 == $dst9) {
+					$R[$dst0] = bless({N=>nicevalue($R[$src0], 1), E=>nicevalue($R[$src0 + 1], 1)}, 'Wherigo.ZonePoint');
+				};
+			};
+
+			my $detail = '';
+			if ($dst0 <= $dst9) {
+				# mam kam priradit vysledek
+				$detail .= "(R$dst0 .. R$dst9) := call R$arg[0]";
+			} elsif ($arg[2] == 0) {
+				# cilem je <top> a nastavuje se na udajne last_result+1, coz nechapu co to znamena
+				$detail .= "<top> := call R$arg[0]";
+			} else {
+				# vysledek se zahazuje
+				$detail .= "call R$arg[0]";
+			};
+			if ($src0 <= $src9) {
+				$detail .= "(R$src0 .. R$src9)";
+			} elsif ($arg[1] == 0) {
+				$detail .= "(<top>)";
+			} else {
+				$detail .= "()";
+			};
+
+			push @out, {
+				instrukce => $instr,
+				detail => $detail
+			};
+		} else {
+			#die "unknown: $_";
+			push @out, {
+				komentar => "WARN: unknown opcode: $_"
+			};
+		};
+		#print "Pote: ". Dumper(\@R, $Gbl)."\n";
+
+		if ($src_line != $last_src_line) {
+			if ($last_src_line >= 0) {
+				# novy radek zdrojaku, oddelim ho pro prehlednost
+				print "\n";
+			};
+			$last_src_line = $src_line;
+		};
+		foreach (my $i=0; $i<=$#out; $i++) {
+			if ($i == 0) {
+				printf "        %-8d[%d]\t", $pc, $src_line;
+			} else {
+				print $fullindent;
+			};
+			$_ = $out[$i];
+			if (ref($_)) {
+				# vyznam, detail?
+				printf "%-40s", $_->{instrukce};
+				if (defined $_->{detail}) {
+					print " ; ", $_->{detail};
+					if (defined $_->{komentar}) {
+						print " ($_->{komentar})";
+					};
+				} elsif (defined $_->{komentar}) {
+					print " ; ($_->{komentar})";
+				};
+			} else {
+				# jen samotna instrukce
+				print $_;
+			};
+			print "\n";
+		};
+	} elsif (/^function.*at (0x[0-9a-f]+)/) {
+		my ($addr) = $1;
+		print "------------------------------------------------------------------\n";
+		if (exists $function_by_address{$addr}) {
+			print "; == \"" . $function_by_address{$addr} . "\" ==\n";
+		} else {
+			print "; == (unknown function, not referenced yet) ==\n";
+		};
+		print "; ", $_, "\n";
+		reset_registers(0);	# preventivne
+	} elsif (/^(\d) params?, /) {
+		my ($nparams) = ($1);
+		print "; ", $_, "\n";
+		reset_registers($nparams + 0);
+	} else {
+		# neznamy radek
+		print $_, "\n";
+	};
+}; # }}}
+
+print "------------ finished -------------\n";
+
+print "; List of all different method calls:\n";
+print join('', map {"; FUNCTION $_\n"} sort keys %calls);
