@@ -6,6 +6,10 @@ Current version of luadisasm:
 
  http://mimon-tools.googlecode.com/svn/trunk/lua/luadisasm
 
+usage:
+
+ $ luac -l |luadisasm
+
 = Details =
 
 Add your content here.  Format your content with:
