@@ -11,11 +11,12 @@ usage:
  $ luac -l | luadisasm
 
 
-= GWS tools
+= GWS tools =
 
 Current version:
 
  http://mimon-tools.googlecode.com/svn/trunk/wherigo/gwsdump
+
  http://mimon-tools.googlecode.com/svn/trunk/wherigo/gwsload
 
 usage:
