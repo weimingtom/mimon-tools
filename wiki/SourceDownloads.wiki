@@ -1,14 +1,29 @@
 #summary One-sentence summary of this page.
 
-= Introduction =
+= Luadisasm =
 
-Current version of luadisasm:
+Current version:
 
  http://mimon-tools.googlecode.com/svn/trunk/lua/luadisasm
 
 usage:
 
- $ luac -l |luadisasm
+ $ luac -l | luadisasm
+
+
+= GWS tools
+
+Current version:
+
+ http://mimon-tools.googlecode.com/svn/trunk/wherigo/gwsdump
+ http://mimon-tools.googlecode.com/svn/trunk/wherigo/gwsload
+
+usage:
+  
+ $ gwsdump savegame.gws >output.xml
+ $ gwsload output.xml new_savegame.gws
+
+(i know it is inconsistent, but ... well .. :))
 
 = Details =
 
