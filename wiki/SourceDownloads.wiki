@@ -22,6 +22,7 @@ Current version:
 usage:
   
  $ gwsdump savegame.gws >output.xml
+
  $ gwsload output.xml new_savegame.gws
 
 (i know it is inconsistent, but ... well .. :))
