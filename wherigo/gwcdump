@@ -1,0 +1,126 @@
+#!/usr/bin/perl
+use strict;
+use FindBin qw($Bin);
+use WherigoCartridge;
+use Archive::Tar;
+use Data::Dumper;
+# use Fcntl qw(:seek);
+# use File::Temp;
+
+my $c = Groundspeak::GWC->new();
+$c->load_from($ARGV[0]) || die;
+
+print "Dump of cartridge \"$ARGV[0]\":\n--------------------------------------------------------\n";
+print "Pocet objektu = ".$c->data->numobjects."\n";
+
+my ($N, $E) = $c->data->coords;
+printf "Starting coords = [N %.4f, E %.4f]\n", $N, $E;
+
+my $type = $c->data->type;
+my $member = $c->data->player;
+my ($a, $b, $x, $y, $u, $v, $w) = @{$c->data->unknown};
+my $small_icon_id = $c->data->icon_id;
+my $large_icon_id = $c->data->splashscreen_id;
+my $name = $c->data->name;
+my $guid = $c->data->guid;
+my $htmldesc = $c->data->description;
+my $shortdesc = $c->data->start_description;
+my $textversion = $c->data->version;
+my $author = $c->data->author;
+my $authorurl = $c->data->company;
+my $destdevice = $c->data->device;
+my $code = $c->data->completion_code;
+
+print "Cartridge type = $type\n";
+print "Who downloaded it = $member\n";
+printf "a=0x%04x, b=0x%04x ; FIXME unknown meaning\n", $a, $b;	# v=porad stejne (ze by member id?), w=vzdy 0
+printf "v=0x%04x, w=0x%04x ; FIXME unknown meaning\n", $v, $w;	# v=porad stejne (ze by member id?), w=vzdy 0
+printf "x=0x%04x, y=0x%04x ; FIXME unknown meaning\n", $x, $y;	# v=porad stejne (ze by member id?), w=vzdy 0
+printf "u=0x%04x ; FIXME unknown meaning\n", $u;	# vzdy 7
+printf "Icons = small:%d, large:%d\n", $small_icon_id, $large_icon_id;
+print "Name = $name\n";
+print "GUID = $guid\n";
+print "HTML description = $htmldesc\n";
+print "Starting point description = $shortdesc\n";	# popis uvodnich souradnic (vetsinou "Zde se da zaparkovat" nebo "Muzete zacit kdekoliv"
+print "Version = $textversion\n";
+print "Author = $author (web=$authorurl)\n";
+print "Device = $destdevice\n";
+print "Unlock code = $code\n";
+
+##############################################################################
+
+my $dstname = $ARGV[0];
+$dstname =~ s/\.(gwc)$//i;
+
+print "Vypis objektu:\n";
+my $tar = Archive::Tar->new;
+my $tardir = "${dstname}_".$textversion;
+my $readme = <<EOT;
+Starting coords = [N $N, E $E];	360/360 means "play anywhere"
+Cartridge type = $type
+Who downloaded it = $member
+Name = $name
+GUID = $guid
+Version = $textversion
+Author = $author (web=$authorurl)
+Device = $destdevice
+Icon ID = $small_icon_id
+Splashscreen ID = $large_icon_id
+a=$a, b=$b
+u=$u
+v=$v, w=$w
+x=$x, y=$y
+EOT
+$tar->add_data($tardir.'/readme.txt', $readme);
+
+$tar->add_data($tardir.'/longdesc.txt', $htmldesc);
+$tar->add_data($tardir.'/startdesc.txt', $shortdesc);
+
+$tar->add_data($tardir.'/unlock.txt', $code);
+
+my %media_names = ();
+my $i=0;
+foreach my $obj (@{$c->data->objects}) {
+	if ($obj->id == 0) { # uplne prvni objekt s Lua bytecodem, nema u sebe uvedeny typ ani nic dalsiho. Jen delku.
+		$tar->add_data($tardir.'/luac.out', $obj->get_content);
+		print sprintf("%d) id=%02x, len=%02x (Lua bytecode)\n", $i, $obj->id, $obj->content_length);
+
+		# Kdyz to jen trochu pujde, zkusim souborum priradit spravne puvodni nazvy:
+		if (open (DISASM, "luac -l - <" . $obj->filename . " |")) {
+			my $lua_decompiled = '';
+			my $medianum = 0;
+			my @docasne_nazvy = ();
+			while (<DISASM>) {
+				$lua_decompiled .= $_;
+				if (/SETTABLE.*"Resources"/) {
+					# konec definici resources pro posledni media-objekt, mohu vsechny zapamatovane nazvy priradit konkretnimu ID
+					$media_names{++$medianum} = [@docasne_nazvy];
+					@docasne_nazvy = ();
+				} elsif (/"Filename" "([^"]+)"/) {
+					push @docasne_nazvy, $1;
+				} elsif (/"Filename" -/) {
+					push @docasne_nazvy, undef; # neznamy nazev, ale vim ze existuje
+				};
+			};
+			close DISASM || warn "error running luac -l, media names will not be listed: $!";
+			print "Nacteno $medianum nazvu souboru\n";
+			$tar->add_data($tardir.'/luac.asm', $lua_decompiled);
+		};
+	} else {
+		my @nazvy = ();
+		if (ref $media_names{ $obj->id }) {
+			@nazvy = @{$media_names{ $obj->id }}
+		};
+		# v taru pro zjednoduseni nazvu soubor prvnim nalezenym nazvem:
+		$tar->add_data($tardir.'/' . ($nazvy[0] ? sprintf('%02d-%s', $obj->id, $nazvy[0]) : sprintf("obj%04d.%s", $obj->id, $obj->texttype)), 
+			$obj->get_content);
+		# ale ve vypisu zobrazim vsechny mozne nazvy tohoto media:
+		print sprintf("%d) id=%d, objtype=0x%02x (.%s), len=%d, orig_name=\"%s\"\n", 
+			$i, $obj->id, $obj->bintype, $obj->texttype, $obj->content_length, join(';', @nazvy));
+	};
+	$i++;
+};
+
+$tar->write($dstname.'_'.$textversion.'.tar') || die $!;
+undef $tar;
+
