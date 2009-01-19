@@ -76,6 +76,9 @@ sub nicevalue($;$) {
 	} elsif (ref($val) eq 'global') {
 		# nazev globalu, tzn. bez uvozovek
 		return $$val;
+	} elsif (ref($val) eq 'upvalue') {
+		# nazev upvalue?
+		return $$val;
 	} elsif (ref($val) eq 'parameter') {
 		# parametr funkce
 		return '<fn_param_'.$$val.'>';
@@ -215,6 +218,19 @@ while (<STDIN>) { # {{{
 					my $addr = $Gbl->{$textarg[0]}->{addr};
 					$function_by_address{$addr} = $textarg[0];	# $function_by_address{"0x12345678"} = "nazev_funkce"
 				};
+			};
+
+		} elsif ($opcode eq 'GETUPVAL') {
+			# R(A) := UpValue[B]
+			push @out, {
+				instrukce => sprintf("R%d = UpValue[%s]", $arg[0], $qtextarg[0])
+			};
+			$R[$arg[0]] = [bless(\$textarg[0], 'upvalue')];	# jen jeden parametr
+		} elsif ($opcode eq 'SETUPVAL') {
+			# Gbl[Kst(Bx)] := R(A)
+			push @out, {
+				instrukce => sprintf("UpValue[%s] = R%d", $qtextarg[0], $arg[0]),
+				detail => nicevalue($R[$arg[0]])
 			};
 
 		} elsif ($opcode eq 'GETTABLE') {
@@ -449,6 +465,14 @@ while (<STDIN>) { # {{{
 			comment_for_pc($textarg[1], "jmp from $pc");
 			$priste_bude_else = "";
 
+		} elsif ($opcode eq 'CLOSE') {
+			# close all variables in the stack up to (>=) R(A)
+			push @out, {
+				instrukce => sprintf("CLOSE %d", $arg[0]),
+				komentar => sprintf("close all variables in the stack up to (>=) R%d", $arg[0])
+			};
+			# FIXME chybi akce
+
 		} elsif ($opcode eq 'CLOSURE') {
 			# CLOSURE         1 0     ; 0x87cd528
 			# R(A) := closure(KPROTO[Bx], R(A), ... ,R(A+n))
@@ -458,6 +482,20 @@ while (<STDIN>) { # {{{
 			};
 			# FIXME chybi dalsi parametry
 			$R[$arg[0]] = {_type => 'closure', addr => $textarg[0]};
+
+		} elsif ($opcode eq 'VARARG') {
+			# R(A), R(A+1), ..., R(A+B-1) = vararg 
+			push @out, {
+				instrukce => sprintf("VARARG %d, %d", $arg[0], $arg[1]),
+				komentar => sprintf("%s = vararg", 
+					($arg[1] == 0) ?
+						"<top>"
+						:
+						join(', ', map {"R$_"} ($arg[0] .. ($arg[0]+$arg[1]-1)))
+				)
+			};
+			# FIXME chybi dalsi parametry
+			#$R[$arg[0]] = {_type => 'closure', addr => $textarg[0]};
 
 		} elsif ($opcode eq 'TFORLOOP') {
 			# 34      [1849]  TFORLOOP        3 2
@@ -673,7 +711,8 @@ while (<STDIN>) { # {{{
 			};
 			print "\n";
 		};
-	} elsif (/^function.*at (0x[0-9a-f]+)/) {
+	} elsif (/^function.*at (0x[0-9a-f]+)/) {	# zacatek funkce
+		# function <E:/webtempfiles/6a5f7475-433a-4f83-847a-db60762258c0/AMF27-new.enc:319,330> (31 instructions, 124 bytes at 0x9212a20)
 		my ($addr) = $1;
 		print "------------------------------------------------------------------\n";
 		if (exists $function_by_address{$addr}) {
@@ -683,10 +722,17 @@ while (<STDIN>) { # {{{
 		};
 		print "; ", $_, "\n";
 		reset_registers(0);	# preventivne
-	} elsif (/^(\d) params?, /) {
+	} elsif (/^(\d) params?, /) {	# pokracovani zacatku funkce (upresneni)
+		# 1 param, 6 slots, 0 upvalues, 1 local, 15 constants, 0 functions
+		#
+		# FIXME teoreticky by me mely zajimav upvalues, locals, atd.
 		my ($nparams) = ($1);
+		# 1 ... je to R0
+		# 2 ... je to R0 a R1
+		# atd.
+
 		print "; ", $_, "\n";
-		reset_registers($nparams + 0);
+		reset_registers($nparams + 0);	#
 	} else {
 		# neznamy radek
 		print $_, "\n";
