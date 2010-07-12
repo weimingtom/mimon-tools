@@ -1,0 +1,296 @@
+# EESchema Netlist Version 1.1 created  12.7.2010 11:45:39
+(
+ ( /4C3AE3D8 $noname  R4 R {Lib=R}
+  (    1 HT )
+  (    2 N-000017 )
+ )
+ ( /4C3AE3CF $noname  R3 R {Lib=R}
+  (    1 HT )
+  (    2 N-000016 )
+ )
+ ( /4C3AE3C3 $noname  R2 R {Lib=R}
+  (    1 HT )
+  (    2 N-000015 )
+ )
+ ( /4C3AE3B9 $noname  R1 R {Lib=R}
+  (    1 HT )
+  (    2 N-000014 )
+ )
+ ( /4C3ADF25 3PIN_6mm  RV1 POT {Lib=POT}
+  (    1 +BATT )
+  (    2 N-000019 )
+  (    3 GND )
+ )
+ ( /4C3ADF1E 3PIN_6mm  RV2 POT {Lib=POT}
+  (    1 +BATT )
+  (    2 N-000030 )
+  (    3 GND )
+ )
+ ( /4C3ADE49 SIL-8  P1 CONN_8 {Lib=CONN_8}
+  (    1 GND )
+  (    2 N-000031 )
+  (    3 N-000028 )
+  (    4 N-000005 )
+  (    5 N-000004 )
+  (    6 N-000029 )
+  (    7 N-000036 )
+  (    8 +BATT )
+ )
+ ( /4C3ADD0D 3PIN_6mm  RV3 POT {Lib=POT}
+  (    1 +BATT )
+  (    2 N-000008 )
+  (    3 GND )
+ )
+ ( /4C3ADBB7 SIL-4  4 5MMRGBLED {Lib=5MMRGBLED}
+  (  P$1 N-000006 )
+  (  P$2 N-000007 )
+  (  P$3 GND )
+  (  P$4 N-000040 )
+ )
+ ( /4C3ADBB4 SIL-4  3 5MMRGBLED {Lib=5MMRGBLED}
+  (  P$1 N-000006 )
+  (  P$2 N-000007 )
+  (  P$3 GND )
+  (  P$4 N-000040 )
+ )
+ ( /4C3ADBAD SIL-4  2 5MMRGBLED {Lib=5MMRGBLED}
+  (  P$1 N-000006 )
+  (  P$2 N-000007 )
+  (  P$3 GND )
+  (  P$4 N-000040 )
+ )
+ ( /4C3ADB7D SIL-4  1 5MMRGBLED {Lib=5MMRGBLED}
+  (  P$1 N-000006 )
+  (  P$2 N-000007 )
+  (  P$3 GND )
+  (  P$4 N-000040 )
+ )
+ ( /4C3A16FD TO220  Q3 BC237 {Lib=BC237}
+  (    B N-000035 )
+  (    C +BATT )
+  (    E N-000006 )
+ )
+ ( /4C3A16F8 TO220  Q2 BC237 {Lib=BC237}
+  (    B N-000034 )
+  (    C +BATT )
+  (    E N-000007 )
+ )
+ ( /4C3A16F4 TO220  Q1 BC237 {Lib=BC237}
+  (    B N-000033 )
+  (    C +BATT )
+  (    E N-000040 )
+ )
+ ( /4C3A16C9 POT_CMS  POT-B1 POT {Lib=POT}
+  (    1 N-000032 )
+  (    2 N-000032 )
+  (    3 N-000035 )
+ )
+ ( /4C3A16C5 POT_CMS  POT-G1 POT {Lib=POT}
+  (    1 N-000038 )
+  (    2 N-000038 )
+  (    3 N-000034 )
+ )
+ ( /4C3A16B7 RV2X4  POT-R1 POT {Lib=POT}
+  (    1 N-000037 )
+  (    2 N-000037 )
+  (    3 N-000033 )
+ )
+ ( /4C3A1401 DIP-24__300  IC1 ATMEGA32-P {Lib=ATMEGA32-P}
+  (    1 ? )
+  (    2 ? )
+  (    3 ? )
+  (    4 ? )
+  (    5 ? )
+  (    6 N-000036 )
+  (    7 N-000029 )
+  (    8 N-000004 )
+  (    9 N-000005 )
+  (   10 +BATT )
+  (   11 GND )
+  (   12 ? )
+  (   13 ? )
+  (   14 N-000028 )
+  (   15 N-000031 )
+  (   16 ? )
+  (   17 N-000037 )
+  (   18 ? )
+  (   19 N-000038 )
+  (   20 N-000032 )
+  (   21 ? )
+  (   22 HT )
+  (   23 N-000017 )
+  (   24 HT )
+  (   25 N-000016 )
+  (   26 HT )
+  (   27 N-000015 )
+  (   28 HT )
+  (   29 N-000014 )
+  (   30 +BATT )
+  (   31 GND )
+  (   32 ? )
+  (   33 ? )
+  (   34 ? )
+  (   35 ? )
+  (   36 ? )
+  (   37 ? )
+  (   38 N-000019 )
+  (   39 N-000030 )
+  (   40 N-000008 )
+ )
+)
+*
+{ Allowed footprints by component:
+$component R4
+ R?
+ SM0603
+ SM0805
+ R?-*
+ SM1206
+$endlist
+$component R3
+ R?
+ SM0603
+ SM0805
+ R?-*
+ SM1206
+$endlist
+$component R2
+ R?
+ SM0603
+ SM0805
+ R?-*
+ SM1206
+$endlist
+$component R1
+ R?
+ SM0603
+ SM0805
+ R?-*
+ SM1206
+$endlist
+$component Q3
+ TO92-EBC
+$endlist
+$component Q2
+ TO92-EBC
+$endlist
+$component Q1
+ TO92-EBC
+$endlist
+$component IC1
+ 40DIP-ELL600
+ 40dip600
+$endlist
+$endfootprintlist
+}
+{ Pin List by Nets
+Net 4 "" ""
+ P1 5
+ IC1 8
+Net 5 "" ""
+ P1 4
+ IC1 9
+Net 6 "" ""
+ 1 P$1
+ 4 P$1
+ 3 P$1
+ 2 P$1
+ Q3 E
+Net 7 "" ""
+ 2 P$2
+ 1 P$2
+ 4 P$2
+ 3 P$2
+ Q2 E
+Net 8 "" ""
+ RV3 2
+ IC1 40
+Net 14 "" ""
+ IC1 29
+ R1 2
+Net 15 "" ""
+ R2 2
+ IC1 27
+Net 16 "" ""
+ R3 2
+ IC1 25
+Net 17 "" ""
+ R4 2
+ IC1 23
+Net 18 "HT" "HT"
+ R4 1
+ R3 1
+ R2 1
+ R1 1
+ IC1 24
+ IC1 22
+ IC1 28
+ IC1 26
+Net 19 "" ""
+ IC1 38
+ RV1 2
+Net 28 "" ""
+ IC1 14
+ P1 3
+Net 29 "" ""
+ P1 6
+ IC1 7
+Net 30 "" ""
+ IC1 39
+ RV2 2
+Net 31 "" ""
+ IC1 15
+ P1 2
+Net 32 "" ""
+ POT-B1 2
+ IC1 20
+ POT-B1 1
+Net 33 "" ""
+ Q1 B
+ POT-R1 3
+Net 34 "" ""
+ Q2 B
+ POT-G1 3
+Net 35 "" ""
+ Q3 B
+ POT-B1 3
+Net 36 "" ""
+ P1 7
+ IC1 6
+Net 37 "" ""
+ POT-R1 2
+ POT-R1 1
+ IC1 17
+Net 38 "" ""
+ IC1 19
+ POT-G1 2
+ POT-G1 1
+Net 39 "+BATT" "+BATT"
+ IC1 10
+ P1 8
+ IC1 30
+ Q3 C
+ RV1 1
+ RV2 1
+ Q2 C
+ Q1 C
+ RV3 1
+Net 40 "" ""
+ 3 P$4
+ 4 P$4
+ 2 P$4
+ 1 P$4
+ Q1 E
+Net 41 "GND" "GND"
+ 2 P$3
+ 1 P$3
+ IC1 11
+ IC1 31
+ RV1 3
+ RV2 3
+ P1 1
+ RV3 3
+ 4 P$3
+ 3 P$3
+}
+#End
