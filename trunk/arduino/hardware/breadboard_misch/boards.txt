@@ -1,6 +1,6 @@
 ##############################################################
 
-atmega168bb.name=ATmega128 on a breadboard (8 MHz internal clock), misch
+atmega168bb.name=ATmega168 on a breadboard (8 MHz internal clock), misch
 
 atmega168bb.upload.protocol=stk500
 atmega168bb.upload.maximum_size=30720
