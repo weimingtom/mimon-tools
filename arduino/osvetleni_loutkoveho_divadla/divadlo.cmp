@@ -1,4 +1,4 @@
-Cmp-Mod V01 Created by CvPCB (2010-05-05 BZR 2356)-stable date = 12.7.2010 11:41:48
+Cmp-Mod V01 Created by CvPCB (2010-05-05 BZR 2356)-stable date = 13.7.2010 16:04:31
 
 BeginCmp
 TimeStamp = /4C3ADB7D;
@@ -29,80 +29,101 @@ IdModule  = SIL-4;
 EndCmp
 
 BeginCmp
-TimeStamp = /4C3A1401;
+TimeStamp = /4C3C6F6B;
 Reference = IC1;
-ValeurCmp = ATMEGA32-P;
-IdModule  = DIP-24__300;
+ValeurCmp = ATMEGA48/88/168-PU;
+IdModule  = DIP-28__300;
 EndCmp
 
 BeginCmp
 TimeStamp = /4C3ADE49;
 Reference = P1;
-ValeurCmp = CONN_8;
+ValeurCmp = ICSP+SERIAL_ISP;
 IdModule  = SIL-8;
 EndCmp
 
 BeginCmp
 TimeStamp = /4C3A16C9;
 Reference = POT-B1;
-ValeurCmp = POT;
+ValeurCmp = 10K;
 IdModule  = POT_CMS;
 EndCmp
 
 BeginCmp
 TimeStamp = /4C3A16C5;
 Reference = POT-G1;
-ValeurCmp = POT;
+ValeurCmp = 10K;
 IdModule  = POT_CMS;
 EndCmp
 
 BeginCmp
 TimeStamp = /4C3A16B7;
 Reference = POT-R1;
-ValeurCmp = POT;
-IdModule  = RV2X4;
+ValeurCmp = 10K;
+IdModule  = POT_CMS;
+EndCmp
+
+BeginCmp
+TimeStamp = /4C3ADF25;
+Reference = POT1;
+ValeurCmp = SYTOST;
+IdModule  = Potentiometer_Bourns_3296X_3-8Zoll_Inline_ScrewFront;
+EndCmp
+
+BeginCmp
+TimeStamp = /4C3ADF1E;
+Reference = POT2;
+ValeurCmp = JAS;
+IdModule  = Potentiometer_Bourns_3296X_3-8Zoll_Inline_ScrewFront;
+EndCmp
+
+BeginCmp
+TimeStamp = /4C3ADD0D;
+Reference = POT3;
+ValeurCmp = BARVA;
+IdModule  = Potentiometer_Bourns_3296X_3-8Zoll_Inline_ScrewFront;
 EndCmp
 
 BeginCmp
 TimeStamp = /4C3A16F4;
 Reference = Q1;
-ValeurCmp = BC237;
-IdModule  = TO220;
+ValeurCmp = BD139-16;
+IdModule  = TO-220_Bipolar-BCE_Horizontal_LargePads;
 EndCmp
 
 BeginCmp
-TimeStamp = /4C3A16F8;
+TimeStamp = /4C3C225F;
 Reference = Q2;
-ValeurCmp = BC237;
-IdModule  = TO220;
+ValeurCmp = BD139-16;
+IdModule  = TO-220_Bipolar-BCE_Horizontal_LargePads;
 EndCmp
 
 BeginCmp
-TimeStamp = /4C3A16FD;
+TimeStamp = /4C3C2263;
 Reference = Q3;
-ValeurCmp = BC237;
-IdModule  = TO220;
+ValeurCmp = BD139-16;
+IdModule  = TO-220_Bipolar-BCE_Horizontal_LargePads;
 EndCmp
 
 BeginCmp
-TimeStamp = /4C3ADF25;
-Reference = RV1;
-ValeurCmp = POT;
-IdModule  = 3PIN_6mm;
+TimeStamp = /4C3C215B;
+Reference = R1;
+ValeurCmp = 4k7;
+IdModule  = Resistor_Horizontal_RM20mm;
 EndCmp
 
 BeginCmp
-TimeStamp = /4C3ADF1E;
-Reference = RV2;
-ValeurCmp = POT;
-IdModule  = 3PIN_6mm;
+TimeStamp = /4C3AE3B9;
+Reference = R2;
+ValeurCmp = 1M;
+IdModule  = Resistor_Horizontal_RM20mm;
 EndCmp
 
 BeginCmp
-TimeStamp = /4C3ADD0D;
-Reference = RV3;
-ValeurCmp = POT;
-IdModule  = 3PIN_6mm;
+TimeStamp = /4C3C22A7;
+Reference = R3;
+ValeurCmp = 1M;
+IdModule  = Resistor_Horizontal_RM20mm;
 EndCmp
 
 EndListe
