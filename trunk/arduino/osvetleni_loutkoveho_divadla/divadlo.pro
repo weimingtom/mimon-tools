@@ -1,6 +1,8 @@
-update=12.7.2010 11:55:16
+update=13.7.2010 16:24:39
 version=1
-last_client=cvpcb
+last_client=pcbnew
+[general]
+version=1
 [eeschema]
 version=1
 LibDir=
@@ -69,8 +71,20 @@ LibName29=contrib
 LibName30=valves
 LibName31=contrib\\led_rgb
 LibName32=contrib\\led
-[general]
+LibName33=contrib\\atmel
+LibName34=contrib\\avr-1
+LibName35=contrib\\avr-2
+LibName36=contrib\\avr-3
+LibName37=contrib\\avr-4
+LibName38=contrib\\avr
+LibName39=contrib\\atmel-1
+LibName40=contrib\\avr32
+LibName41=contrib\\atmega8
+[cvpcb]
 version=1
+NetIExt=net
+[cvpcb/libraries]
+EquName1=devcms
 [pcbnew]
 version=1
 PadDrlX=320
@@ -90,6 +104,7 @@ TxtLar=120
 MSegLar=150
 LastNetListRead=divadlo.net
 [pcbnew/libraries]
+LibDir=C:\\Program Files\\KiCad\\share\\modules\\contrib
 LibName1=sockets
 LibName2=connect
 LibName3=discret
@@ -100,9 +115,10 @@ LibName7=display
 LibName8=valves
 LibName9=led
 LibName10=dip_sockets
-LibDir=C:\\Program Files\\KiCad\\share\\modules\\contrib
-[cvpcb]
-version=1
-NetIExt=net
-[cvpcb/libraries]
-EquName1=devcms
+LibName11=Potentiometer_RevA
+LibName12=Resistor_ThroughHole_RevA
+LibName13=TO-92-All-Free_RevB
+LibName14=Transistor_TO-220_RevA
+LibName15=Capacitors_ThroughHole_RevA
+LibName16=Dioden_ThroughHole_RevB
+LibName17=Measurement_Point_RevA
