@@ -1,32 +1,45 @@
 ##############################################################
 
-atmega168bb.name=ATmega168 on a breadboard (8 MHz internal clock), misch
-
+atmega168bb.name=misch: ATmega168 on a breadboard (8 MHz internal clock)
 atmega168bb.upload.protocol=stk500
-atmega168bb.upload.maximum_size=30720
-atmega168bb.upload.speed=57600
-
+atmega168bb.upload.maximum_size=14336
+atmega168bb.upload.speed=19200
 
 # Puvodne (E2/D9/07) to pro 328p znamenalo:
 #  int. osc. default, bez delitele
 #  boot flash 2048 @ $3800
 #  SPIEN
 #  BODLEVEL disabled
+
+
+# CKOUT=0
+# CKDIV8=0
+# BOOTRST=0
+# BOOTSZ=0 (2048, @$3800)
+# EESAVE=0
+# WDTON=0
+# SPIEN=1
+# BODLEVEL=111
 #
 #atmega168bb.bootloader.low_fuses=0xE2
 #atmega168bb.bootloader.high_fuses=0xD9
 #atmega168bb.bootloader.extended_fuses=0x07
 # Dtto, ale misto atmega328p je to pro atmega168p, viz http://www.engbedded.com/fusecalc:
+#atmega168bb.bootloader.low_fuses=0xE2
+#atmega168bb.bootloader.high_fuses=0xDF
+#atmega168bb.bootloader.extended_fuses=0x01
+# a pro atmega168 (bez "P" na konci) s bootsize=1k a BOOTRST=0:
 atmega168bb.bootloader.low_fuses=0xE2
 atmega168bb.bootloader.high_fuses=0xDF
-atmega168bb.bootloader.extended_fuses=0x01
+atmega168bb.bootloader.extended_fuses=0x00
 
 atmega168bb.bootloader.path=arduino:atmega
 atmega168bb.bootloader.file=ATmegaBOOT_168_pro_8MHz.hex
 atmega168bb.bootloader.unlock_bits=0x3F
 atmega168bb.bootloader.lock_bits=0x0F
 
-atmega168bb.build.mcu=atmega168p
+#atmega168bb.build.mcu=m168
+atmega168bb.build.mcu=atmega168
 atmega168bb.build.f_cpu=8000000L
 atmega168bb.build.core=arduino:arduino
 
