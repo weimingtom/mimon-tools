@@ -1,4 +1,4 @@
-Cmp-Mod V01 Created by CvPCB (2010-05-05 BZR 2356)-stable date = 13.7.2010 16:04:31
+Cmp-Mod V01 Created by CvPCB (2010-05-05 BZR 2356)-stable date = 18.7.2010 16:31:12
 
 BeginCmp
 TimeStamp = /4C3ADB7D;
@@ -29,6 +29,13 @@ IdModule  = SIL-4;
 EndCmp
 
 BeginCmp
+TimeStamp = /4C4308AA;
+Reference = C1;
+ValeurCmp = 100n;
+IdModule  = C2;
+EndCmp
+
+BeginCmp
 TimeStamp = /4C3C6F6B;
 Reference = IC1;
 ValeurCmp = ATMEGA48/88/168-PU;
@@ -36,31 +43,45 @@ IdModule  = DIP-28__300;
 EndCmp
 
 BeginCmp
-TimeStamp = /4C3ADE49;
+TimeStamp = /4C430BB9;
 Reference = P1;
-ValeurCmp = ICSP+SERIAL_ISP;
-IdModule  = SIL-8;
+ValeurCmp = mereni_LED;
+IdModule  = pin_array_3x2;
+EndCmp
+
+BeginCmp
+TimeStamp = /4C43080C;
+Reference = P2;
+ValeurCmp = ISP_via_arduino;
+IdModule  = SIL-5;
+EndCmp
+
+BeginCmp
+TimeStamp = /4C43090D;
+Reference = P3;
+ValeurCmp = napajeni;
+IdModule  = SIL-2;
 EndCmp
 
 BeginCmp
 TimeStamp = /4C3A16C9;
 Reference = POT-B1;
 ValeurCmp = 10K;
-IdModule  = POT_CMS;
+IdModule  = RV2X4;
 EndCmp
 
 BeginCmp
 TimeStamp = /4C3A16C5;
 Reference = POT-G1;
 ValeurCmp = 10K;
-IdModule  = POT_CMS;
+IdModule  = RV2X4;
 EndCmp
 
 BeginCmp
 TimeStamp = /4C3A16B7;
 Reference = POT-R1;
 ValeurCmp = 10K;
-IdModule  = POT_CMS;
+IdModule  = RV2X4;
 EndCmp
 
 BeginCmp
@@ -88,21 +109,21 @@ BeginCmp
 TimeStamp = /4C3A16F4;
 Reference = Q1;
 ValeurCmp = BD139-16;
-IdModule  = TO-220_Bipolar-BCE_Horizontal_LargePads;
+IdModule  = TO-220_Bipolar-BCE_Horizontal_Reverse;
 EndCmp
 
 BeginCmp
 TimeStamp = /4C3C225F;
 Reference = Q2;
 ValeurCmp = BD139-16;
-IdModule  = TO-220_Bipolar-BCE_Horizontal_LargePads;
+IdModule  = TO-220_Bipolar-BCE_Horizontal_Reverse;
 EndCmp
 
 BeginCmp
 TimeStamp = /4C3C2263;
 Reference = Q3;
 ValeurCmp = BD139-16;
-IdModule  = TO-220_Bipolar-BCE_Horizontal_LargePads;
+IdModule  = TO-220_Bipolar-BCE_Horizontal_Reverse;
 EndCmp
 
 BeginCmp

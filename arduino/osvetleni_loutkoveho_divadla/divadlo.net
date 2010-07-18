@@ -1,140 +1,154 @@
-# EESchema Netlist Version 1.1 created  13.7.2010 16:21:21
+# EESchema Netlist Version 1.1 created  18.7.2010 16:31:12
 (
- ( /4C3C6F6B atmega8-DIL28-3  IC1 ATMEGA48/88/168-PU {Lib=ATMEGA48/88/168-PU}
-  (    1 N-000029 )
-  (    2 N-000004 )
-  (    3 N-000005 )
-  (    4 N-000018 )
-  (    5 N-000028 )
-  (    6 N-000017 )
-  (    7 VCC )
-  (    8 GND )
-  (    9 ? )
-  (   10 ? )
-  (   11 N-000024 )
-  (   12 N-000022 )
-  (   13 N-000008 )
-  (   14 N-000009 )
-  (   15 ? )
-  (   16 ? )
-  (   17 N-000016 )
-  (   18 N-000013 )
-  (   19 N-000026 )
-  (   20 VCC )
-  (   21 ? )
-  (   22 GND )
-  (   23 N-000019 )
-  (   24 N-000010 )
-  (   25 N-000015 )
-  (   26 ? )
-  (   27 ? )
-  (   28 ? )
+ ( /4C3ADB7D SIL-4 1 5MMRGBLED
+  ( 1 N-000035 )
+  ( 2 N-000017 )
+  ( 3 N-000018 )
+  ( 4 N-000036 )
  )
- ( /4C3C22A7 $noname  R3 1M {Lib=R}
-  (    1 N-000008 )
-  (    2 N-000018 )
+ ( /4C3ADBAD SIL-4 2 5MMRGBLED
+  ( 1 N-000035 )
+  ( 2 N-000017 )
+  ( 3 N-000018 )
+  ( 4 N-000036 )
  )
- ( /4C3C2263 TO220  Q3 BD139-16 {Lib=BC237}
-  (    B N-000023 )
-  (    C VCC )
-  (    E N-000032 )
+ ( /4C3ADBB4 SIL-4 3 5MMRGBLED
+  ( 1 N-000035 )
+  ( 2 N-000017 )
+  ( 3 N-000018 )
+  ( 4 N-000036 )
  )
- ( /4C3C225F TO220  Q2 BD139-16 {Lib=BC237}
-  (    B N-000025 )
-  (    C VCC )
-  (    E N-000020 )
+ ( /4C3ADBB7 SIL-4 4 5MMRGBLED
+  ( 1 N-000035 )
+  ( 2 N-000017 )
+  ( 3 N-000018 )
+  ( 4 N-000036 )
  )
- ( /4C3C215B $noname  R1 4k7 {Lib=R}
-  (    1 N-000029 )
-  (    2 VCC )
+ ( /4C4308AA C2 C1 100n
+  ( 1 N-000002 )
+  ( 2 N-000013 )
  )
- ( /4C3AE3B9 $noname  R2 1M {Lib=R}
-  (    1 N-000009 )
-  (    2 N-000017 )
+ ( /4C3C6F6B DIP-28__300 IC1 ATMEGA48/88/168-PU
+  ( 1 N-000013 )
+  ( 2 N-000004 )
+  ( 3 N-000003 )
+  ( 4 N-000033 )
+  ( 5 N-000024 )
+  ( 6 N-000029 )
+  ( 7 N-000031 )
+  ( 8 N-000018 )
+  ( 9 ? )
+  ( 10 ? )
+  ( 11 N-000022 )
+  ( 12 N-000034 )
+  ( 13 N-000028 )
+  ( 14 N-000030 )
+  ( 15 ? )
+  ( 16 ? )
+  ( 17 ? )
+  ( 18 ? )
+  ( 19 ? )
+  ( 20 N-000031 )
+  ( 21 ? )
+  ( 22 N-000018 )
+  ( 23 N-000025 )
+  ( 24 N-000026 )
+  ( 25 N-000027 )
+  ( 26 ? )
+  ( 27 ? )
+  ( 28 ? )
  )
- ( /4C3ADF25 3PIN_6mm  POT1 SYTOST {Lib=POT}
-  (    1 VCC )
-  (    2 N-000015 )
-  (    3 GND )
+ ( /4C430BB9 pin_array_3x2 P1 mereni_LED
+  ( 1 N-000020 )
+  ( 2 N-000036 )
+  ( 3 N-000016 )
+  ( 4 N-000017 )
+  ( 5 N-000032 )
+  ( 6 N-000035 )
  )
- ( /4C3ADF1E 3PIN_6mm  POT2 JAS {Lib=POT}
-  (    1 VCC )
-  (    2 N-000010 )
-  (    3 GND )
+ ( /4C43080C SIL-5 P2 ISP_via_arduino
+  ( 1 N-000031 )
+  ( 2 N-000003 )
+  ( 3 N-000004 )
+  ( 4 N-000018 )
+  ( 5 N-000002 )
  )
- ( /4C3ADE49 SIL-8  P1 ICSP+SERIAL_ISP {Lib=CONN_8}
-  (    1 GND )
-  (    2 N-000004 )
-  (    3 N-000005 )
-  (    4 N-000029 )
-  (    5 N-000013 )
-  (    6 N-000016 )
-  (    7 N-000026 )
-  (    8 VCC )
+ ( /4C43090D SIL-2 P3 napajeni
+  ( 1 N-000018 )
+  ( 2 N-000031 )
  )
- ( /4C3ADD0D 3PIN_6mm  POT3 BARVA {Lib=POT}
-  (    1 VCC )
-  (    2 N-000019 )
-  (    3 GND )
+ ( /4C3A16C9 RV2X4 POT-B1 10K
+  ( 1 N-000034 )
+  ( 2 N-000034 )
+  ( 3 N-000021 )
  )
- ( /4C3ADBB7 SIL-4  4 5MMRGBLED {Lib=5MMRGBLED}
-  (    1 N-000032 )
-  (    2 N-000020 )
-  (    3 GND )
-  (    4 N-000031 )
+ ( /4C3A16C5 RV2X4 POT-G1 10K
+  ( 1 N-000022 )
+  ( 2 N-000022 )
+  ( 3 N-000023 )
  )
- ( /4C3ADBB4 SIL-4  3 5MMRGBLED {Lib=5MMRGBLED}
-  (    1 N-000032 )
-  (    2 N-000020 )
-  (    3 GND )
-  (    4 N-000031 )
+ ( /4C3A16B7 RV2X4 POT-R1 10K
+  ( 1 N-000024 )
+  ( 2 N-000024 )
+  ( 3 N-000019 )
  )
- ( /4C3ADBAD SIL-4  2 5MMRGBLED {Lib=5MMRGBLED}
-  (    1 N-000032 )
-  (    2 N-000020 )
-  (    3 GND )
-  (    4 N-000031 )
+ ( /4C3ADF25 Potentiometer_Bourns_3296X_3-8Zoll_Inline_ScrewFront POT1 SYTOST
+  ( 1 N-000031 )
+  ( 2 N-000027 )
+  ( 3 N-000018 )
  )
- ( /4C3ADB7D SIL-4  1 5MMRGBLED {Lib=5MMRGBLED}
-  (    1 N-000032 )
-  (    2 N-000020 )
-  (    3 GND )
-  (    4 N-000031 )
+ ( /4C3ADF1E Potentiometer_Bourns_3296X_3-8Zoll_Inline_ScrewFront POT2 JAS
+  ( 1 N-000031 )
+  ( 2 N-000026 )
+  ( 3 N-000018 )
  )
- ( /4C3A16F4 TO220  Q1 BD139-16 {Lib=BC237}
-  (    B N-000021 )
-  (    C VCC )
-  (    E N-000031 )
+ ( /4C3ADD0D Potentiometer_Bourns_3296X_3-8Zoll_Inline_ScrewFront POT3 BARVA
+  ( 1 N-000031 )
+  ( 2 N-000025 )
+  ( 3 N-000018 )
  )
- ( /4C3A16C9 POT_CMS  POT-B1 10K {Lib=POT}
-  (    1 N-000022 )
-  (    2 N-000022 )
-  (    3 N-000023 )
+ ( /4C3A16F4 TO-220_Bipolar-BCE_Horizontal_Reverse Q1 BD139-16
+  ( B N-000019 )
+  ( C N-000031 )
+  ( E N-000020 )
  )
- ( /4C3A16C5 POT_CMS  POT-G1 10K {Lib=POT}
-  (    1 N-000024 )
-  (    2 N-000024 )
-  (    3 N-000025 )
+ ( /4C3C225F TO-220_Bipolar-BCE_Horizontal_Reverse Q2 BD139-16
+  ( B N-000023 )
+  ( C N-000031 )
+  ( E N-000016 )
  )
- ( /4C3A16B7 RV2X4  POT-R1 10K {Lib=POT}
-  (    1 N-000028 )
-  (    2 N-000028 )
-  (    3 N-000021 )
+ ( /4C3C2263 TO-220_Bipolar-BCE_Horizontal_Reverse Q3 BD139-16
+  ( B N-000021 )
+  ( C N-000031 )
+  ( E N-000032 )
+ )
+ ( /4C3C215B Resistor_Horizontal_RM20mm R1 4k7
+  ( 1 N-000013 )
+  ( 2 N-000031 )
+ )
+ ( /4C3AE3B9 Resistor_Horizontal_RM20mm R2 1M
+  ( 1 N-000030 )
+  ( 2 N-000029 )
+ )
+ ( /4C3C22A7 Resistor_Horizontal_RM20mm R3 1M
+  ( 1 N-000028 )
+  ( 2 N-000033 )
  )
 )
 *
 { Allowed footprints by component:
-$component R3
- R?
- SM0603
- SM0805
- R?-*
- SM1206
+$component C1
+ SM*
+ C?
+ C1-1
 $endlist
-$component Q3
+$component Q1
  TO92-EBC
 $endlist
 $component Q2
+ TO92-EBC
+$endlist
+$component Q3
  TO92-EBC
 $endlist
 $component R1
@@ -151,112 +165,12 @@ $component R2
  R?-*
  SM1206
 $endlist
-$component Q1
- TO92-EBC
+$component R3
+ R?
+ SM0603
+ SM0805
+ R?-*
+ SM1206
 $endlist
 $endfootprintlist
 }
-{ Pin List by Nets
-Net 4 "" ""
- IC1 2
- P1 2
-Net 5 "" ""
- IC1 3
- P1 3
-Net 8 "" ""
- R3 1
- IC1 13
-Net 9 "" ""
- IC1 14
- R2 1
-Net 10 "" ""
- POT2 2
- IC1 24
-Net 13 "" ""
- P1 5
- IC1 18
-Net 15 "" ""
- IC1 25
- POT1 2
-Net 16 "" ""
- P1 6
- IC1 17
-Net 17 "" ""
- IC1 6
- R2 2
-Net 18 "" ""
- IC1 4
- R3 2
-Net 19 "" ""
- POT3 2
- IC1 23
-Net 20 "" ""
- Q2 E
- 1 2
- 2 2
- 3 2
- 4 2
-Net 21 "" ""
- Q1 B
- POT-R1 3
-Net 22 "" ""
- IC1 12
- POT-B1 1
- POT-B1 2
-Net 23 "" ""
- Q3 B
- POT-B1 3
-Net 24 "" ""
- POT-G1 2
- POT-G1 1
- IC1 11
-Net 25 "" ""
- POT-G1 3
- Q2 B
-Net 26 "" ""
- P1 7
- IC1 19
-Net 27 "VCC" "VCC"
- IC1 7
- Q1 C
- Q3 C
- Q2 C
- R1 2
- POT1 1
- POT2 1
- POT3 1
- P1 8
- IC1 20
-Net 28 "" ""
- IC1 5
- POT-R1 1
- POT-R1 2
-Net 29 "" ""
- R1 1
- P1 4
- IC1 1
-Net 30 "GND" "GND"
- 2 3
- P1 1
- 3 3
- POT2 3
- 4 3
- POT1 3
- 1 3
- POT3 3
- IC1 22
- IC1 8
-Net 31 "" ""
- 1 4
- 2 4
- 3 4
- 4 4
- Q1 E
-Net 32 "" ""
- Q3 E
- 1 1
- 4 1
- 2 1
- 3 1
-}
-#End
