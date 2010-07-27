@@ -1,4 +1,4 @@
-EESchema Schematic File Version 2  date 18.7.2010 16:18:10
+EESchema Schematic File Version 2  date 27.7.2010 20:41:45
 LIBS:power
 LIBS:device
 LIBS:transistors
@@ -45,7 +45,7 @@ EELAYER END
 $Descr A4 11700 8267
 Sheet 1 1
 Title ""
-Date "18 jul 2010"
+Date "27 jul 2010"
 Rev ""
 Comp ""
 Comment1 ""
@@ -53,6 +53,39 @@ Comment2 ""
 Comment3 ""
 Comment4 ""
 $EndDescr
+Wire Wire Line
+	3650 3250 3825 3250
+Wire Wire Line
+	3825 3250 3825 3075
+Wire Wire Line
+	3650 4350 3725 4350
+Wire Wire Line
+	3725 4350 3725 6525
+Wire Wire Line
+	6375 5425 6375 4350
+Wire Wire Line
+	6625 6125 6875 6125
+Wire Wire Line
+	6875 6125 6875 5975
+Wire Wire Line
+	8400 4300 9400 4300
+Connection ~ 4800 2500
+Wire Wire Line
+	4800 2350 4800 2750
+Wire Wire Line
+	4800 2750 6450 2750
+Wire Wire Line
+	6450 2750 6450 2650
+Wire Wire Line
+	5700 2350 5900 2350
+Wire Wire Line
+	5900 2350 5900 2100
+Wire Wire Line
+	5900 2100 6850 2100
+Wire Wire Line
+	6850 2100 6850 2350
+Wire Wire Line
+	5000 2350 5500 2350
 Wire Wire Line
 	4575 7125 10325 7125
 Wire Wire Line
@@ -66,11 +99,7 @@ Wire Wire Line
 Wire Wire Line
 	9475 3800 9475 4400
 Wire Wire Line
-	9475 4400 9350 4400
-Wire Wire Line
 	8400 3150 8400 4025
-Wire Wire Line
-	8550 4300 8400 4300
 Wire Wire Line
 	8400 4300 8400 6175
 Wire Wire Line
@@ -82,11 +111,7 @@ Wire Wire Line
 Wire Wire Line
 	9975 6500 10325 6500
 Connection ~ 3850 2650
-Wire Wire Line
-	750  2650 5000 2650
 Connection ~ 4150 2500
-Wire Wire Line
-	4800 2350 4800 2500
 Wire Wire Line
 	4800 2500 650  2500
 Connection ~ 3900 4050
@@ -97,25 +122,9 @@ Wire Wire Line
 Wire Wire Line
 	4050 2700 4050 2400
 Wire Wire Line
-	750  2650 750  4550
+	750  4550 750  2650
 Wire Wire Line
 	3850 2400 3850 2650
-Wire Wire Line
-	3650 4250 3875 4250
-Wire Wire Line
-	3875 4250 3875 4650
-Wire Wire Line
-	3875 4650 4275 4650
-Wire Wire Line
-	3650 4450 3825 4450
-Wire Wire Line
-	3825 4450 3825 4850
-Wire Wire Line
-	3825 4850 4275 4850
-Wire Wire Line
-	3650 4650 3725 4650
-Wire Wire Line
-	3725 4650 3725 6525
 Wire Wire Line
 	3725 6525 6375 6525
 Wire Wire Line
@@ -125,13 +134,7 @@ Wire Wire Line
 Wire Wire Line
 	3775 5975 6375 5975
 Wire Wire Line
-	3650 4350 6375 4350
-Wire Wire Line
 	3650 4150 3950 4150
-Wire Wire Line
-	3650 3350 3825 3350
-Wire Wire Line
-	3825 3350 3825 3075
 Wire Wire Line
 	3825 3075 4325 3075
 Wire Wire Line
@@ -148,20 +151,12 @@ Connection ~ 750  4250
 Connection ~ 750  3150
 Wire Wire Line
 	750  4550 1250 4550
-Wire Wire Line
-	5075 4850 4775 4850
 Connection ~ 4575 3850
 Connection ~ 4575 3550
 Connection ~ 4075 3550
 Wire Wire Line
 	4075 3225 4075 4600
 Connection ~ 4575 6850
-Wire Wire Line
-	6375 6525 6375 6375
-Wire Wire Line
-	6375 6375 6625 6375
-Wire Wire Line
-	6625 5275 6375 5275
 Wire Wire Line
 	9475 4600 9475 6850
 Wire Wire Line
@@ -258,17 +253,10 @@ Wire Wire Line
 	9250 3875 9250 3300
 Wire Wire Line
 	8400 6175 7175 6175
-Connection ~ 6375 5975
 Connection ~ 4075 3850
 Wire Wire Line
 	8975 6300 8975 6850
 Connection ~ 8975 6850
-Wire Wire Line
-	4775 4850 4775 4950
-Wire Wire Line
-	4775 4650 4775 4750
-Wire Wire Line
-	4775 4650 5075 4650
 Connection ~ 750  4550
 Wire Wire Line
 	1250 5350 750  5350
@@ -276,22 +264,7 @@ Connection ~ 750  5350
 Wire Wire Line
 	4325 3400 3775 3400
 Wire Wire Line
-	3775 3400 3775 3250
-Wire Wire Line
-	3775 3250 3650 3250
-Wire Wire Line
 	3900 4050 3650 4050
-Wire Wire Line
-	6375 4350 6375 5425
-Connection ~ 6375 5275
-Wire Wire Line
-	6375 5975 6375 5825
-Wire Wire Line
-	6375 5825 6625 5825
-Wire Wire Line
-	4775 4950 3650 4950
-Wire Wire Line
-	4775 4750 3650 4750
 Wire Wire Line
 	1250 4250 750  4250
 Connection ~ 10150 6500
@@ -314,15 +287,9 @@ Wire Wire Line
 Wire Wire Line
 	4375 2400 4250 2400
 Wire Wire Line
-	5000 2650 5000 2350
-Wire Wire Line
 	7850 5625 7850 4200
 Wire Wire Line
-	7850 4200 8550 4200
-Wire Wire Line
 	8500 3950 8500 3450
-Wire Wire Line
-	9350 4300 9400 4300
 Wire Wire Line
 	9400 4300 9400 4025
 Wire Wire Line
@@ -330,18 +297,62 @@ Wire Wire Line
 Wire Wire Line
 	8350 6725 8350 4400
 Wire Wire Line
-	8350 4400 8550 4400
-Wire Wire Line
 	8350 3000 8350 3800
 Wire Wire Line
 	7175 2850 750  2850
+Wire Wire Line
+	750  2650 5600 2650
+Wire Wire Line
+	5600 2650 5600 2350
+Wire Wire Line
+	6050 2350 6050 2500
+Wire Wire Line
+	6050 2500 5250 2500
+Wire Wire Line
+	5250 2500 5250 2350
+Connection ~ 5250 2350
+Wire Wire Line
+	7850 4200 9350 4200
+Wire Wire Line
+	8350 4400 9475 4400
+Wire Wire Line
+	6625 5575 6875 5575
+Wire Wire Line
+	6875 5575 6875 5425
+Wire Wire Line
+	6875 6525 6875 6675
+Wire Wire Line
+	6875 6675 6625 6675
+Wire Wire Line
+	6375 4350 4025 4350
+Wire Wire Line
+	4025 4350 4025 4650
+Wire Wire Line
+	4025 4650 3650 4650
+Wire Wire Line
+	3775 3400 3775 3350
+Wire Wire Line
+	3775 3350 3650 3350
+NoConn ~ 3650 4950
+NoConn ~ 3650 4750
+NoConn ~ 3650 4450
+NoConn ~ 3650 4250
 $Comp
-L CONN_3X2 P1
-U 1 1 4C430BB9
-P 8950 4350
-F 0 "P1" H 8950 4600 50  0000 C CNN
-F 1 "mereni_LED" V 8950 4400 40  0000 C CNN
-	1    8950 4350
+L CONN_3 P4
+U 1 1 4C4CA758
+P 5600 2000
+F 0 "P4" V 5550 2000 50  0000 C CNN
+F 1 "pwr_sel" V 5650 2000 40  0000 C CNN
+	1    5600 2000
+	0    -1   -1   0   
+$EndComp
+$Comp
+L LM7805 U1
+U 1 1 4C4CA734
+P 6450 2400
+F 0 "U1" H 6600 2204 60  0000 C CNN
+F 1 "LM7805" H 6450 2600 60  0000 C CNN
+	1    6450 2400
 	1    0    0    -1  
 $EndComp
 NoConn ~ 3650 5450
@@ -402,15 +413,6 @@ F 2 "atmega8-DIL28-3" H 2450 4400 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L R R3
-U 1 1 4C3C22A7
-P 4525 4650
-F 0 "R3" V 4605 4650 50  0000 C CNN
-F 1 "1M" V 4525 4650 50  0000 C CNN
-	1    4525 4650
-	0    1    1    0   
-$EndComp
-$Comp
 L BC237 Q3
 U 1 1 4C3C2263
 P 7075 6525
@@ -437,15 +439,6 @@ P 1000 3150
 F 0 "R1" V 1080 3150 50  0000 C CNN
 F 1 "4k7" V 1000 3150 50  0000 C CNN
 	1    1000 3150
-	0    1    1    0   
-$EndComp
-$Comp
-L R R2
-U 1 1 4C3AE3B9
-P 4525 4850
-F 0 "R2" V 4605 4850 50  0000 C CNN
-F 1 "1M" V 4525 4850 50  0000 C CNN
-	1    4525 4850
 	0    1    1    0   
 $EndComp
 $Comp
@@ -554,7 +547,7 @@ F 0 "POT-B1" H 6625 6425 50  0000 C CNN
 F 1 "10K" H 6625 6525 50  0000 C CNN
 F 2 "POT_CMS" H 6625 6525 60  0001 C CNN
 	1    6625 6525
-	1    0    0    -1  
+	-1   0    0    1   
 $EndComp
 $Comp
 L POT POT-G1
@@ -564,7 +557,7 @@ F 0 "POT-G1" H 6625 5875 50  0000 C CNN
 F 1 "10K" H 6625 5975 50  0000 C CNN
 F 2 "POT_CMS" H 6625 5975 60  0001 C CNN
 	1    6625 5975
-	1    0    0    -1  
+	-1   0    0    1   
 $EndComp
 $Comp
 L POT POT-R1
@@ -574,6 +567,6 @@ F 0 "POT-R1" H 6625 5325 50  0000 C CNN
 F 1 "10K" H 6625 5425 50  0000 C CNN
 F 2 "RV2X4" H 6625 5425 60  0001 C CNN
 	1    6625 5425
-	1    0    0    -1  
+	-1   0    0    1   
 $EndComp
 $EndSCHEMATC

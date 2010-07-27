@@ -1,4 +1,4 @@
-update=18.7.2010 16:35:48
+update=28.7.2010 0:19:16
 version=1
 last_client=pcbnew
 [general]
@@ -122,3 +122,4 @@ LibName14=Transistor_TO-220_RevA
 LibName15=Capacitors_ThroughHole_RevA
 LibName16=Dioden_ThroughHole_RevB
 LibName17=Measurement_Point_RevA
+LibName18=Potentiometres

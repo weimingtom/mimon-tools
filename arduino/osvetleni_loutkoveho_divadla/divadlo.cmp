@@ -1,4 +1,4 @@
-Cmp-Mod V01 Created by CvPCB (2010-05-05 BZR 2356)-stable date = 18.7.2010 16:31:12
+Cmp-Mod V01 Created by CvPCB (2010-05-05 BZR 2356)-stable date = 25.7.2010 23:13:56
 
 BeginCmp
 TimeStamp = /4C3ADB7D;
@@ -61,6 +61,13 @@ TimeStamp = /4C43090D;
 Reference = P3;
 ValeurCmp = napajeni;
 IdModule  = SIL-2;
+EndCmp
+
+BeginCmp
+TimeStamp = /4C4CA758;
+Reference = P4;
+ValeurCmp = pwr_sel;
+IdModule  = SIL-3;
 EndCmp
 
 BeginCmp
@@ -145,6 +152,13 @@ TimeStamp = /4C3C22A7;
 Reference = R3;
 ValeurCmp = 1M;
 IdModule  = Resistor_Horizontal_RM20mm;
+EndCmp
+
+BeginCmp
+TimeStamp = /4C4CA734;
+Reference = U1;
+ValeurCmp = LM7805;
+IdModule  = LM78XX;
 EndCmp
 
 EndListe
