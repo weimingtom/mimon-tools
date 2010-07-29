@@ -1,4 +1,4 @@
-Cmp-Mod V01 Created by CvPCB (2010-05-05 BZR 2356)-stable date = 25.7.2010 23:13:56
+Cmp-Mod V01 Created by CvPCB (2010-05-05 BZR 2356)-stable date = 29.7.2010 13:42:49
 
 BeginCmp
 TimeStamp = /4C3ADB7D;
@@ -36,17 +36,17 @@ IdModule  = C2;
 EndCmp
 
 BeginCmp
+TimeStamp = /4C516854;
+Reference = C2;
+ValeurCmp = 2,2uF;
+IdModule  = C1V5;
+EndCmp
+
+BeginCmp
 TimeStamp = /4C3C6F6B;
 Reference = IC1;
 ValeurCmp = ATMEGA48/88/168-PU;
 IdModule  = DIP-28__300;
-EndCmp
-
-BeginCmp
-TimeStamp = /4C430BB9;
-Reference = P1;
-ValeurCmp = mereni_LED;
-IdModule  = pin_array_3x2;
 EndCmp
 
 BeginCmp
@@ -137,20 +137,6 @@ BeginCmp
 TimeStamp = /4C3C215B;
 Reference = R1;
 ValeurCmp = 4k7;
-IdModule  = Resistor_Horizontal_RM20mm;
-EndCmp
-
-BeginCmp
-TimeStamp = /4C3AE3B9;
-Reference = R2;
-ValeurCmp = 1M;
-IdModule  = Resistor_Horizontal_RM20mm;
-EndCmp
-
-BeginCmp
-TimeStamp = /4C3C22A7;
-Reference = R3;
-ValeurCmp = 1M;
 IdModule  = Resistor_Horizontal_RM20mm;
 EndCmp
 

@@ -1,4 +1,4 @@
-update=28.7.2010 0:19:16
+update=29.7.2010 14:02:52
 version=1
 last_client=pcbnew
 [general]
