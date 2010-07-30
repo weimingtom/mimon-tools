@@ -6,8 +6,10 @@ const int ledPinR = 3;
 const int ledPinG = 6;
 const int ledPinB = 5;
 
-const int BLANK = 255;
-const int FULL = 0;
+// gama korekce, aby (pri spravne serizene bile) nemely jednotlive tmavsi odstiny barevny nadech:
+const float gammaR = 0.8;
+const float gammaG = 1.1;
+const float gammaB = 0.8;
 
 #define filterSamples 13            // filterSamples should  be an odd number, no smaller than 3
 int SmoothArrayHue [filterSamples];   // array for holding raw sensor values for sensor1 
@@ -141,10 +143,75 @@ void zobraz(int faze, float value, float jas, float saturace) {
 //  Serial.println();  
 };
 
+// int nebo byte?
+int gamma_correct(int vstup, double gamma) {
+	 return (int)(0.5 + 255.0 * pow(vstup/255.0, gamma));
+};
+
 void DisplayRGB255(int r, int g, int b) {
-  analogWrite(ledPinR, r);         
+	r = gamma_correct(r, gammaR);
+	g = gamma_correct(g, gammaG);
+	b = gamma_correct(b, gammaB);
+
+  analogWrite(ledPinR, r);
   analogWrite(ledPinG, g);         
   analogWrite(ledPinB, b);  
+};
+
+// DisplayHSV(0-360, 0.0-1.0, 0.0-1.0);
+void DisplayHSV(int Hue360, float Saturation, float Value) {
+	// prevzato z Wikipedie: 
+	// 	http://en.wikipedia.org/wiki/HSL_and_HSV
+	// a taky odtud:
+	// 	http://www.unrealwiki.com/HSV-RGB_Conversion
+
+	// Given a color with hue H . [0°, 360°), saturation SHSV . [0, 1], and
+	// value V . [0, 1], we first find chroma:
+	float Chroma = Value * Saturation;
+
+	// Then we can find a point (R1, G1, B1) along the bottom three faces of
+	// the RGB cube, with the same hue and chroma as our color (using the
+	// intermediate value X for the second largest component of this color):
+	float Hseg = (float)Hue360 / 60;
+	float X = Chroma * (1.0 - abs(Hseg % 2 - 1.0));
+
+	float R, G, B = 0;
+	if (Hseg < 1) {
+		R = Chroma;
+		G = X;
+	} else if (Hseg < 2) {
+		R = X;
+		G = Chroma;
+	} else if (Hseg < 3) {
+		G = Chroma;
+		B = X;
+	} else if (Hseg < 4) {
+		G = X;
+		B = Chroma;
+	} else if (Hseg < 5) {
+		R = X;
+		B = Chroma;
+	} else if (Hseg < 6) {
+		R = C;
+		B = X;
+	} else {
+		// vyjimka, tohle nesmi nastat
+	};
+
+	// Finally, we can find R, G, and B by adding the same amount to each component, to match value:
+	float m = Value - Chroma;
+	R += m;
+	G += m;
+	B += m;
+
+	// zkonvertujeme do rozsahu 0 - 255:
+	DisplayRGB255(
+		trunc(R * 255 + 0.5), 
+		trunc(G * 255 + 0.5), 
+		trunc(B * 255 + 0.5)
+	);
+
+	// FIXME a co gama korekce?
 };
 
 
@@ -162,9 +229,25 @@ void setup() {
   DisplayRGB255(0, 0, 255); delay(500);
   DisplayRGB255(255, 255, 0); delay(500);
   DisplayRGB255(0, 255, 255); delay(500);
-  DisplayRGB255(255, 0, 255); delay(5
-  00);
+  DisplayRGB255(255, 0, 255); delay(500);
   DisplayRGB255(0, 0, 0);
+  
+  // testy:
+  delay(1000);
+  DisplayHSV(0, 1.0, 1.0);	// cervena
+  Delay(500);
+  DisplayHSV(0, 1.0, 0.5);	// cervena
+  Delay(500);
+  DisplayHSV(120, 1.0, 1.0);	// zelena
+  Delay(500);
+  DisplayHSV(120, 1.0, 0.5);	// zelena
+  Delay(500);
+  DisplayHSV(240, 1.0, 1.0);	// modra
+  Delay(500);
+  DisplayHSV(240, 1.0, 0.5);	// modra
+  Delay(500);
+  DisplayHSV(0, 0.0, 0.0);	// cerna
+
 
 //  Serial.begin(9600);
 
