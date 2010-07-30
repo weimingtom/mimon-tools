@@ -80,70 +80,6 @@ int digitalSmooth(int rawIn, int *sensSmoothArray){     // "int *sensSmoothArray
   return total / k;    // divide by number of samples
 };
 
-void zobraz(int faze, float value, float jas, float saturace) {
-  float r; float g; float b;
-
-  if (faze==0) {  // R-G
-      r = 255-value;
-      g = value;
-      b = 0;
-  } else if (faze==1) {  // G-B
-      r = 0;
-      g = 255-value;
-      b = value;
-  } else if (faze==2) {  // B-R
-      r = value;
-      g = 0;
-      b = 255-value;
-  } else {
-      r = g = b = value;
-  };
-  
-//  // normalizace (napr. zlusta=RGB=0.5/0.5/0 zmeni na 1/1/0
-//  float m;
-//  m = r;  // max
-//  if (g > m) {m = g;};
-//  if (b > m) {m = b;};
-//  // a pak skutecna normalizace:
-//  r = r / m * 255;  
-//  g = g / m * 255;  
-
-//  b = b / m * 255;  
-
-  // sytost
-  float avg;
-  avg = (r + g + b) / 3;
-  // a ted:
-  // sytost=0 ... barvy by se mely stahnout na prumer
-  // sytost=1 ... barvy by mely zustat stejne
-  r = avg + (r-avg)*saturace;
-  g = avg + (g-avg)*saturace;
-  b = avg + (b-avg)*saturace;  
-    
-  // pak jas
-  r = r * jas;
-  g = g * jas;
-  b = b * jas;
-
-  DisplayRGB255(r, g, b);
-  
-//  Serial.print("r=");
-//  Serial.print(r);
-//  Serial.print(", g=");
-//  Serial.print(g);
-//  Serial.print(", b=");
-//  Serial.print(b);  
-//  Serial.print(", faze=");
-//  Serial.print(faze);
-//  Serial.print(", value=");
-//  Serial.print(value);
-//  Serial.print(", jas=");
-//  Serial.print(jas);
-//  Serial.print(", bila=");
-//  Serial.print(bila);
-//  Serial.println();  
-};
-
 // int nebo byte?
 int gamma_correct(int vstup, double gamma) {
 	 return (int)(0.5 + 255.0 * pow(vstup/255.0, gamma));
@@ -251,19 +187,6 @@ void setup() {
 
 
 //  Serial.begin(9600);
-
-//  for (int faze=0; faze<=2; faze++) {
-//    for (int value=0; value<=255; value++) {
-//     zobraz(faze, value, 1.0, 0.0);
-//     delayMicroseconds(1000);
-//    };
-//  };
-//  for (int i=1; i<=3; i++) {
-//    zobraz(3, 255, 0.5, 0.0);
-//    delay(200);
-//    zobraz(3, 0, 1.0, 0.0);
-//    delay(200);
-//  };
 }
 
 void loop()  { 
@@ -275,43 +198,6 @@ void loop()  {
   int Lightness = digitalSmooth(tmpval, SmoothArrayLightness);  
   tmpval = 1023 - analogRead(sensorPinSaturation);   // 0 - 1023
   int Saturation = digitalSmooth(tmpval, SmoothArraySaturation);
-
-//  int faze = Hue >> 8;  // 0-3 (3ka se nepouziva)
-//  int value = (Hue & 0xff);  // 0-255
-
-  int faze = 0;
-  int value = 0;
-  if (Hue <= 340) { // 0 - 340
-    faze = 0;
-    value = ((float)Hue) / 340 * 255;
-  } else if (Hue <= 682) { // 341- 682
-    faze = 1;
-    value = ((float)Hue - 341) / 341 * 255;
-  } else {  // 683 - 1023
-    faze = 2;
-    value = ((float)Hue - 683) / 340 * 255;
-  };
-
-  if (Lightness > 0) {	// rozsviceno
-	zhasnuto_kdy = millis();
-  };
-  if ((millis() - zhasnuto_kdy) > (1000L * 60 * 5)) { 	// je zhasnuto dele nez 5 minut, uspim se, at setrim baterky
-		// uspime se, definitivne a trvale, tzn. je potreba odpojit baterku aby se obvod znovu probudil:
-		set_sleep_mode(SLEEP_MODE_PWR_DOWN);	// kompletni powersave
-		sleep_enable();    	// pojistka, defaultne je totiz sleep zakazany a bez tohoto volani se neprovede
-		sleep_mode(); 		// timto se konecne uspi. 
-		
-		// Po probuzeni by pak pokracoval odtud:
-		// FIXME (ale bylo by potreba ho nejdriv NEJAK probudit :-))
-		sleep_disable();  	// zakazeme spanek, at se omylem zase hned neuspi
-		// a pokracujeme dal ...
-		
-		// FIXME co takhle probouzeni casovacem?
-		
-
-		// A jeste zajistit, abych pri dalsim pruchodu smyckou hned zase hned neusnul, pokud by byl potik porad stazeny na 0: :-)
-		zhasnuto_kdy = millis();
-  };
 
 //
 //  Serial.print("hue=");
@@ -326,8 +212,33 @@ void loop()  {
 //  Serial.print(value);  
 //  Serial.println();  
 
-  zobraz(faze, (float)value, ((float)Lightness)/1023, ((float)Saturation)/1023);
+  // zobraz(faze, (float)value, ((float)Lightness)/1023, ((float)Saturation)/1023);
+  DisplayHSV(
+    (float)Hue/1023*360, 
+    ((float)Lightness)/1023, 
+    ((float)Saturation)/1023
+  );
   delay(5);
+  
+  if (Lightness > 0) {	// rozsviceno
+	zhasnuto_kdy = millis();
+  };
+  if ((millis() - zhasnuto_kdy) > (1000L * 60 * 5)) { 	// je zhasnuto dele nez 5 minut, uspim se, at setrim baterky
+    // uspime se, definitivne a trvale, tzn. je potreba odpojit baterku aby se obvod znovu probudil:
+    set_sleep_mode(SLEEP_MODE_PWR_DOWN);	// kompletni powersave
+    sleep_enable();    	// pojistka, defaultne je totiz sleep zakazany a bez tohoto volani se neprovede
+    sleep_mode(); 		// timto se konecne uspi. 
+    	
+    // Po probuzeni by pak pokracoval odtud:
+    // FIXME (ale bylo by potreba ho nejdriv NEJAK probudit :-))
+    sleep_disable();  	// zakazeme spanek, at se omylem zase hned neuspi
+    // a pokracujeme dal ...
+    		
+    // FIXME co takhle probouzeni casovacem?
+    	    
+    // A jeste zajistit, abych pri dalsim pruchodu smyckou hned zase hned neusnul, pokud by byl potik porad stazeny na 0: :-)
+    zhasnuto_kdy = millis();
+  };
 }
 
 
