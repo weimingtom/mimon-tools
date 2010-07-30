@@ -1,3 +1,5 @@
+/* vim: set expandtab tabstop=2 shiftwidth=2 filetype=c: */
+
 #include <avr/sleep.h>
 
 const int sensorPinHue = 0;
@@ -18,7 +20,7 @@ int SmoothArrayHue [filterSamples];   // array for holding raw sensor values for
 int SmoothArrayLightness [filterSamples];
 int SmoothArraySaturation [filterSamples];
 
-unsigned long zhasnuto_kdy = 0;	// jak dlouho uz je stazeny potik s jasem na 0?
+unsigned long zhasnuto_kdy = 0; // jak dlouho uz je stazeny potik s jasem na 0?
 
 //int sensorValue = 0;  // variable to store the value coming from the sensor
 //int lastSensor = 0;
@@ -82,13 +84,13 @@ int digitalSmooth(int rawIn, int *sensSmoothArray){     // "int *sensSmoothArray
 
 // int nebo byte?
 int gamma_correct(int vstup, double gamma) {
-	 return (int)(0.5 + 255.0 * pow(vstup/255.0, gamma));
+     return (int)(0.5 + 255.0 * pow(vstup/255.0, gamma));
 };
 
 void DisplayRGB255(int r, int g, int b) {
-	r = gamma_correct(r, gammaR);
-	g = gamma_correct(g, gammaG);
-	b = gamma_correct(b, gammaB);
+    r = gamma_correct(r, gammaR);
+    g = gamma_correct(g, gammaG);
+    b = gamma_correct(b, gammaB);
 
   analogWrite(ledPinR, r);
   analogWrite(ledPinG, g);         
@@ -97,58 +99,57 @@ void DisplayRGB255(int r, int g, int b) {
 
 // DisplayHSV(0-360, 0.0-1.0, 0.0-1.0);
 void DisplayHSV(int Hue360, float Saturation, float Value) {
-	// prevzato z Wikipedie: 
-	// 	http://en.wikipedia.org/wiki/HSL_and_HSV
-	// a taky odtud:
-	// 	http://www.unrealwiki.com/HSV-RGB_Conversion
+    // prevzato z Wikipedie: 
+    //  http://en.wikipedia.org/wiki/HSL_and_HSV
+    // a taky odtud:
+    //  http://www.unrealwiki.com/HSV-RGB_Conversion
 
-	// Given a color with hue H . [0°, 360°), saturation SHSV . [0, 1], and
-	// value V . [0, 1], we first find chroma:
-	float Chroma = Value * Saturation;
+    // Given a color with hue H . [0°, 360°), saturation SHSV . [0, 1], and
+    // value V . [0, 1], we first find chroma:
+    float Chroma = Value * Saturation;
 
-	// Then we can find a point (R1, G1, B1) along the bottom three faces of
-	// the RGB cube, with the same hue and chroma as our color (using the
-	// intermediate value X for the second largest component of this color):
-	float Hseg = (float)Hue360 / 60;
-	float X = Chroma * (1.0 - abs((Hseg/2 - trunc(Hseg/2)) - 1.0));  // [a/2 - int(a/2)] je nahrada fce modulo() pro float.
+    // Then we can find a point (R1, G1, B1) along the bottom three faces of
+    // the RGB cube, with the same hue and chroma as our color (using the
+    // intermediate value X for the second largest component of this color):
+    float Hseg = (float)Hue360 / 60;
+    float X = Chroma * (1.0 - abs((Hseg/2 - trunc(Hseg/2)) - 1.0));  // [a/2 - int(a/2)] je nahrada fce modulo() pro float.
 
-	float R, G, B = 0;
-	if (Hseg < 1) {
-		R = Chroma;
-		G = X;
-	} else if (Hseg < 2) {
-		R = X;
-		G = Chroma;
-	} else if (Hseg < 3) {
-		G = Chroma;
-		B = X;
-	} else if (Hseg < 4) {
-		G = X;
-		B = Chroma;
-	} else if (Hseg < 5) {
-		R = X;
-		B = Chroma;
-	} else if (Hseg < 6) {
-		R = Chroma;
-		B = X;
-	} else {
-		// vyjimka, tohle nesmi nastat
-	};
+    float R, G, B = 0;
+    if (Hseg < 1) {
+        R = Chroma;
+        G = X;
+    } else if (Hseg < 2) {
+        R = X;
+        G = Chroma;
+    } else if (Hseg < 3) {
+        G = Chroma;
+        B = X;
+    } else if (Hseg < 4) {
+        G = X;
+        B = Chroma;
+    } else if (Hseg < 5) {
+        R = X;
+        B = Chroma;
+    } else if (Hseg < 6) {
+        R = Chroma;
+        B = X;
+    } else {
+        // vyjimka, tohle nesmi nastat
+    };
 
-	// Finally, we can find R, G, and B by adding the same amount to each component, to match value:
-	float m = Value - Chroma;
-	R += m;
-	G += m;
-	B += m;
+    // Finally, we can find R, G, and B by adding the same amount to each component, to match value:
+    float m = Value - Chroma;
+    R += m;
+    G += m;
+    B += m;
 
-	// zkonvertujeme do rozsahu 0 - 255:
-	DisplayRGB255(
-		trunc(R * 255 + 0.5), 
-		trunc(G * 255 + 0.5), 
-		trunc(B * 255 + 0.5)
-	);
-
-	// FIXME a co gama korekce?
+    // zkonvertujeme do rozsahu 0 - 255.
+    // O gama korekci se postara primo funkce DisplayRGB255:
+    DisplayRGB255(
+        trunc(R * 255 + 0.5), 
+        trunc(G * 255 + 0.5), 
+        trunc(B * 255 + 0.5)
+    );
 };
 
 
@@ -160,7 +161,29 @@ void setup() {
   pinMode(sensorPinHue, INPUT);  
   pinMode(sensorPinLightness, INPUT);  
   pinMode(sensorPinSaturation, INPUT);  
-  
+ 
+  // potiky jsou zapojene obracene, takze 1023=vlevo a 0=vpravo)
+  if ((analogRead(sensorPinHue) < 5)
+      &&
+      (analogRead(sensorPinLightness) < 5)
+      &&
+      (analogRead(sensorPinSaturation) < 5)) {
+    // vsechny jsou otocene plne doprava, prepnu se na kalibracni rezim
+      while ((analogRead(sensorPinLightness) < 5) && (analogRead(sensorPinSaturation) < 5)) {  
+        // DOKUD jsou prvni dva otocene plne doprava, kalibruji.
+        if (analogRead(sensorPinHue) < 256) {
+          DisplayRGB255(255, 0, 0);     // cervena
+        } else if (analogRead(sensorPinHue) < 512) {
+          DisplayRGB255(0, 255, 0);     // modra
+        } else if (analogRead(sensorPinHue) < 768) {
+          DisplayRGB255(0, 0, 255);     // zelena
+        } else {
+          DisplayRGB255(255, 255, 255); // bila, vsechny naplno
+        };
+      };
+      // nekdo pohnul s prvnim dvema potiky, takze kalibraci koncim
+  };
+
   DisplayRGB255(255, 0, 0); delay(500);
   DisplayRGB255(0, 255, 0); delay(500);
   DisplayRGB255(0, 0, 255); delay(500);
@@ -171,19 +194,19 @@ void setup() {
   
   // testy:
   delay(1000);
-  DisplayHSV(0, 1.0, 1.0);	// cervena
+  DisplayHSV(0, 1.0, 1.0);  // cervena
   delay(500);
-  DisplayHSV(0, 1.0, 0.5);	// cervena
+  DisplayHSV(0, 1.0, 0.5);  // cervena
   delay(500);
-  DisplayHSV(120, 1.0, 1.0);	// zelena
+  DisplayHSV(120, 1.0, 1.0);    // zelena
   delay(500);
-  DisplayHSV(120, 1.0, 0.5);	// zelena
+  DisplayHSV(120, 1.0, 0.5);    // zelena
   delay(500);
-  DisplayHSV(240, 1.0, 1.0);	// modra
+  DisplayHSV(240, 1.0, 1.0);    // modra
   delay(500);
-  DisplayHSV(240, 1.0, 0.5);	// modra
+  DisplayHSV(240, 1.0, 0.5);    // modra
   delay(500);
-  DisplayHSV(0, 0.0, 0.0);	// cerna
+  DisplayHSV(0, 0.0, 0.0);  // cerna
 
 
 //  Serial.begin(9600);
@@ -220,22 +243,22 @@ void loop()  {
   );
   delay(5);
   
-  if (Lightness > 0) {	// rozsviceno
-	zhasnuto_kdy = millis();
+  if (Lightness > 0) {  // rozsviceno
+    zhasnuto_kdy = millis();
   };
-  if ((millis() - zhasnuto_kdy) > (1000L * 60 * 5)) { 	// je zhasnuto dele nez 5 minut, uspim se, at setrim baterky
+  if ((millis() - zhasnuto_kdy) > (1000L * 60 * 5)) {   // je zhasnuto dele nez 5 minut, uspim se, at setrim baterky
     // uspime se, definitivne a trvale, tzn. je potreba odpojit baterku aby se obvod znovu probudil:
-    set_sleep_mode(SLEEP_MODE_PWR_DOWN);	// kompletni powersave
-    sleep_enable();    	// pojistka, defaultne je totiz sleep zakazany a bez tohoto volani se neprovede
-    sleep_mode(); 		// timto se konecne uspi. 
-    	
+    set_sleep_mode(SLEEP_MODE_PWR_DOWN);    // kompletni powersave
+    sleep_enable();     // pojistka, defaultne je totiz sleep zakazany a bez tohoto volani se neprovede
+    sleep_mode();       // timto se konecne uspi. 
+        
     // Po probuzeni by pak pokracoval odtud:
     // FIXME (ale bylo by potreba ho nejdriv NEJAK probudit :-))
-    sleep_disable();  	// zakazeme spanek, at se omylem zase hned neuspi
+    sleep_disable();    // zakazeme spanek, at se omylem zase hned neuspi
     // a pokracujeme dal ...
-    		
+            
     // FIXME co takhle probouzeni casovacem?
-    	    
+            
     // A jeste zajistit, abych pri dalsim pruchodu smyckou hned zase hned neusnul, pokud by byl potik porad stazeny na 0: :-)
     zhasnuto_kdy = millis();
   };
