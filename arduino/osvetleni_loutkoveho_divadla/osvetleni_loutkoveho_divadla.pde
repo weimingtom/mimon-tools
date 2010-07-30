@@ -1,3 +1,5 @@
+#include <avr/sleep.h>
+
 const int sensorPinHue = 0;
 const int sensorPinLightness = 2;
 const int sensorPinSaturation = 1;
@@ -16,8 +18,7 @@ int SmoothArrayHue [filterSamples];   // array for holding raw sensor values for
 int SmoothArrayLightness [filterSamples];
 int SmoothArraySaturation [filterSamples];
 
-
-
+unsigned long zhasnuto_kdy = 0;	// jak dlouho uz je stazeny potik s jasem na 0?
 
 //int sensorValue = 0;  // variable to store the value coming from the sensor
 //int lastSensor = 0;
@@ -173,7 +174,7 @@ void DisplayHSV(int Hue360, float Saturation, float Value) {
 	// the RGB cube, with the same hue and chroma as our color (using the
 	// intermediate value X for the second largest component of this color):
 	float Hseg = (float)Hue360 / 60;
-	float X = Chroma * (1.0 - abs(Hseg % 2 - 1.0));
+	float X = Chroma * (1.0 - abs((Hseg/2 - trunc(Hseg/2)) - 1.0));  // [a/2 - int(a/2)] je nahrada fce modulo() pro float.
 
 	float R, G, B = 0;
 	if (Hseg < 1) {
@@ -192,7 +193,7 @@ void DisplayHSV(int Hue360, float Saturation, float Value) {
 		R = X;
 		B = Chroma;
 	} else if (Hseg < 6) {
-		R = C;
+		R = Chroma;
 		B = X;
 	} else {
 		// vyjimka, tohle nesmi nastat
@@ -235,17 +236,17 @@ void setup() {
   // testy:
   delay(1000);
   DisplayHSV(0, 1.0, 1.0);	// cervena
-  Delay(500);
+  delay(500);
   DisplayHSV(0, 1.0, 0.5);	// cervena
-  Delay(500);
+  delay(500);
   DisplayHSV(120, 1.0, 1.0);	// zelena
-  Delay(500);
+  delay(500);
   DisplayHSV(120, 1.0, 0.5);	// zelena
-  Delay(500);
+  delay(500);
   DisplayHSV(240, 1.0, 1.0);	// modra
-  Delay(500);
+  delay(500);
   DisplayHSV(240, 1.0, 0.5);	// modra
-  Delay(500);
+  delay(500);
   DisplayHSV(0, 0.0, 0.0);	// cerna
 
 
@@ -289,6 +290,27 @@ void loop()  {
   } else {  // 683 - 1023
     faze = 2;
     value = ((float)Hue - 683) / 340 * 255;
+  };
+
+  if (Lightness > 0) {	// rozsviceno
+	zhasnuto_kdy = millis();
+  };
+  if ((millis() - zhasnuto_kdy) > (1000L * 60 * 5)) { 	// je zhasnuto dele nez 5 minut, uspim se, at setrim baterky
+		// uspime se, definitivne a trvale, tzn. je potreba odpojit baterku aby se obvod znovu probudil:
+		set_sleep_mode(SLEEP_MODE_PWR_DOWN);	// kompletni powersave
+		sleep_enable();    	// pojistka, defaultne je totiz sleep zakazany a bez tohoto volani se neprovede
+		sleep_mode(); 		// timto se konecne uspi. 
+		
+		// Po probuzeni by pak pokracoval odtud:
+		// FIXME (ale bylo by potreba ho nejdriv NEJAK probudit :-))
+		sleep_disable();  	// zakazeme spanek, at se omylem zase hned neuspi
+		// a pokracujeme dal ...
+		
+		// FIXME co takhle probouzeni casovacem?
+		
+
+		// A jeste zajistit, abych pri dalsim pruchodu smyckou hned zase hned neusnul, pokud by byl potik porad stazeny na 0: :-)
+		zhasnuto_kdy = millis();
   };
 
 //
