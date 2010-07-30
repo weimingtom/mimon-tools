@@ -1,0 +1,8 @@
+max. trvaly proud: 30 mA (kazda LED zvlast)
+zakladni spotreba: 15 mA
+
+Tzn. behem mereni musi pri plne intenzite
+jednotlivych LED maximalni proud byt:
+  15 mA + 4*30 mA = 135 mA. 
+MAXIMALNI! Tzn. radeji 95 - 120 mA
+
