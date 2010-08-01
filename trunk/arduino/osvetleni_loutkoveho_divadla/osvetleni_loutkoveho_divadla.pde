@@ -84,6 +84,8 @@ int digitalSmooth(int rawIn, int *sensSmoothArray){     // "int *sensSmoothArray
 
 // int nebo byte?
 int gamma_correct(int vstup, double gamma) {
+  // FIXME: prozatim
+return vstup;  
      return (int)(0.5 + 255.0 * pow(vstup/255.0, gamma));
 };
 
@@ -111,8 +113,14 @@ void DisplayHSV(int Hue360, float Saturation, float Value) {
     // Then we can find a point (R1, G1, B1) along the bottom three faces of
     // the RGB cube, with the same hue and chroma as our color (using the
     // intermediate value X for the second largest component of this color):
-    float Hseg = (float)Hue360 / 60;
-    float X = Chroma * (1.0 - abs((Hseg/2 - trunc(Hseg/2)) - 1.0));  // [a/2 - int(a/2)] je nahrada fce modulo() pro float.
+    float Hseg = (float)Hue360 / 60; // 0.0 - 6.0
+      // 0-1 = R ... R+G  (G^)
+      // 1-2 = R+G ... G  (Rv)
+      // 2-3 = G ... G+B  (B^)
+      // 3-4 = G+B ... B  (Gv)
+      // 4-5 = B ... B+R  (R^)
+      // 5-6 = 
+    float X = Chroma * (1.0 - abs(2*(Hseg/2 - trunc(Hseg/2)) - 1.0));  // [a/2 - int(a/2)] je nahrada fce modulo() pro float.
 
     float R, G, B = 0;
     if (Hseg < 1) {
@@ -130,12 +138,30 @@ void DisplayHSV(int Hue360, float Saturation, float Value) {
     } else if (Hseg < 5) {
         R = X;
         B = Chroma;
-    } else if (Hseg < 6) {
+    } else if (Hseg <= 6) {
         R = Chroma;
         B = X;
     } else {
-        // vyjimka, tohle nesmi nastat
+        // vyjimka, tohle nesmi nastat (a nebo je to 6, co je taky OK, proto "<=" u predchozi podminky
     };
+
+//Serial.print("H=");
+//Serial.print(Hue360);
+//Serial.print(", Hseg=");
+//Serial.print(Hseg);
+//Serial.print(", Sat=");
+//Serial.print(Saturation);
+//Serial.print(", Value=");
+//Serial.print(Value);
+//Serial.print(", Chroma=");
+//Serial.print(Chroma);
+//Serial.print(", R=");
+//Serial.print(R);
+//Serial.print(", G=");
+//Serial.print(G);
+//Serial.print(", B=");
+//Serial.print(B);
+//Serial.println();
 
     // Finally, we can find R, G, and B by adding the same amount to each component, to match value:
     float m = Value - Chroma;
@@ -184,16 +210,16 @@ void setup() {
       // nekdo pohnul s prvnim dvema potiky, takze kalibraci koncim
   };
 
-  DisplayRGB255(255, 0, 0); delay(500);
-  DisplayRGB255(0, 255, 0); delay(500);
-  DisplayRGB255(0, 0, 255); delay(500);
-  DisplayRGB255(255, 255, 0); delay(500);
-  DisplayRGB255(0, 255, 255); delay(500);
-  DisplayRGB255(255, 0, 255); delay(500);
-  DisplayRGB255(0, 0, 0);
-  
-  // testy:
-  delay(1000);
+//  DisplayRGB255(255, 0, 0); delay(500);
+//  DisplayRGB255(0, 255, 0); delay(500);
+//  DisplayRGB255(0, 0, 255); delay(500);
+//  DisplayRGB255(255, 255, 0); delay(500);
+//  DisplayRGB255(0, 255, 255); delay(500);
+//  DisplayRGB255(255, 0, 255); delay(500);
+//  DisplayRGB255(0, 0, 0);
+//  
+//  // testy:
+//  delay(1000);
   DisplayHSV(0, 1.0, 1.0);  // cervena
   delay(500);
   DisplayHSV(0, 1.0, 0.5);  // cervena
@@ -237,9 +263,9 @@ void loop()  {
 
   // zobraz(faze, (float)value, ((float)Lightness)/1023, ((float)Saturation)/1023);
   DisplayHSV(
-    (float)Hue/1023*360, 
-    ((float)Lightness)/1023, 
-    ((float)Saturation)/1023
+    (float)Hue/1023*360,  
+    ((float)Saturation)/1023,
+    ((float)Lightness)/1023   
   );
   delay(5);
   
