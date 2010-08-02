@@ -4,6 +4,13 @@
 #include <stdio.h>
 
 // #define DEBUG 1
+#define USE_GAMMMA 1
+
+#ifdef DEBUG
+  #define dbg(x) Serial.print(x);
+#else
+  #define dbg(x) ;
+#endif
 
 const int sensorPinHue = 0;
 const int sensorPinLightness = 2;
@@ -14,38 +21,36 @@ const int ledPinG = 6;
 const int ledPinB = 5;
 
 // gama korekce, aby (pri spravne serizene bile) nemely jednotlive tmavsi odstiny barevny nadech:
-const float gammaR = 0.8;
-const float gammaG = 1.1;
-const float gammaB = 0.8;
+// POZOR, funguje opacne:
+//   1 ... neutral
+//  <1 ... jasnejsi
+//  >1 ... tmavsi
+#ifdef USE_GAMMA
+const float gammaR = 1.1;
+const float gammaG = 0.9;
+const float gammaB = 1.1;
+#endif
 
 #define filterSamples 13            // filterSamples should  be an odd number, no smaller than 3
 int SmoothArrayHue [filterSamples];   // array for holding raw sensor values for sensor1 
+int SmoothCounterHue = 0;
 int SmoothArrayLightness [filterSamples];
+int SmoothCounterLightness = 0;
 int SmoothArraySaturation [filterSamples];
+int SmoothCounterSaturation = 0;
 
 unsigned long zhasnuto_kdy = 0; // jak dlouho uz je stazeny potik s jasem na 0?
 
-void dbg(char *fmt, ... ) {
-#ifdef DEBUG
-        char tmp[200]; // resulting string limited to 200 chars
-        va_list args;
-        va_start (args, fmt );
-        vsnprintf(tmp, 200, fmt, args);
-        va_end (args);
-        Serial.print(tmp);
-#endif
-}
-
-int digitalSmooth(int rawIn, int *sensSmoothArray){     // "int *sensSmoothArray" passes an array to the function - the asterisk indicates the array name is a pointer
+int digitalSmooth(int rawIn, int *sensSmoothArray, int *sensCounter) {     // "int *sensSmoothArray" passes an array to the function - the asterisk indicates the array name is a pointer
   int j, k, temp, top, bottom;
   long total;
-  static int i;
+  
  // static int raw[filterSamples];
   static int sorted[filterSamples];
   boolean done;
 
-  i = (i + 1) % filterSamples;    // increment counter and roll over if necc. -  % (modulo operator) rolls over variable
-  sensSmoothArray[i] = rawIn;                 // input new data into the oldest slot
+  *sensCounter = (*sensCounter + 1) % filterSamples;    // increment counter and roll over if necc. -  % (modulo operator) rolls over variable
+  sensSmoothArray[*sensCounter] = rawIn;                 // input new data into the oldest slot
 
   // Serial.print("raw = ");
 
@@ -86,27 +91,46 @@ int digitalSmooth(int rawIn, int *sensSmoothArray){     // "int *sensSmoothArray
     // Serial.print("   "); 
   }
 
-//  Serial.println();
-//  Serial.print("average = ");
-//  Serial.println(total/k);
-  return total / k;    // divide by number of samples
+ int ret = total/k; 
+ 
+// dbg("average(");
+// dbg(rawIn);
+// dbg(")=");
+// dbg(ret);
+// dbg("\n");
+ 
+ return ret;
 };
 
 // int nebo byte?
+#ifdef USE_GAMMA
 int gamma_correct(int vstup, double gamma) {
      return (int)(0.5 + 255.0 * pow(vstup/255.0, gamma));
 };
+#else
+int gamma_correct(int vstup, double gamma) {return vstup;};
+#endif
 
 void DisplayRGB255(int r, int g, int b) {
+#ifdef USE_GAMMA  
   int r2 = gamma_correct(r, gammaR);
   int g2 = gamma_correct(g, gammaG);
   int b2 = gamma_correct(b, gammaB);
-
-  dbg("RGB(%d, %d, %d) corrected to (%d, %d, %d)\n", r, g, b, r2, g2, b2);
-
+   dbg("_R=");
+   dbg(r2);
+   dbg(", _G=");
+   dbg(g2);
+   dbg(", _B=");
+   dbg(b2);
+   dbg("\n");
   analogWrite(ledPinR, r2);
   analogWrite(ledPinG, g2);         
-  analogWrite(ledPinB, b2);  
+  analogWrite(ledPinB, b2);
+#else
+  analogWrite(ledPinR, r);
+  analogWrite(ledPinG, g);         
+  analogWrite(ledPinB, b);
+#endif
 };
 
 // DisplayHSV(0-360, 0.0-1.0, 0.0-1.0);
@@ -132,7 +156,14 @@ void DisplayHSV(int Hue360, float Saturation, float Value) {
       // 5-6 = 
     float X = Chroma * (1.0 - abs(2*(Hseg/2 - trunc(Hseg/2)) - 1.0));  // [a/2 - int(a/2)] je nahrada fce modulo() pro float.
 
-    float R, G, B = 0;
+
+// Jak to, ze:
+// H=360, Sytost=1.00, Jas=0.36, Hseg=6.00, Chroma=0.36, X=0.00, m=0.00, R=93, G=51, B=0
+// ???
+// Uaaaaaaaaaa, neinicializovana promenna!
+    float R = 0;
+    float G = 0;
+    float B = 0;
     if (Hseg < 1) {
         R = Chroma;
         G = X;
@@ -161,20 +192,37 @@ void DisplayHSV(int Hue360, float Saturation, float Value) {
     G += m;
     B += m;
 
+    int R255 = trunc(R * 255 + 0.5);
+    int G255 = trunc(G * 255 + 0.5);
+    int B255 = trunc(B * 255 + 0.5);    
 
-    dbg("HSV(%d, %f, %f): Hseg=%f, Chroma=%f, X=%f, m=%f, RGB=%d/%d/%d\n", 
-      Hue360, Saturation, Value,
-      Hseg, Chroma, X, m,
-      R, G, B
-     );
+#ifdef DEBUG
+  Serial.print("H=");
+  Serial.print(Hue360);  
+  Serial.print(", Sytost=");
+  Serial.print(Saturation);  
+  Serial.print(", Jas=");
+  Serial.print(Value);  
+  Serial.print(", Hseg=");
+  Serial.print(Hseg);  
+  Serial.print(", Chroma=");
+  Serial.print(Chroma);  
+  Serial.print(", X=");
+  Serial.print(X);  
+  Serial.print(", m=");
+  Serial.print(m);  
+  Serial.print(", R=");
+  Serial.print(R255);  
+  Serial.print(", G=");
+  Serial.print(G255);  
+  Serial.print(", B=");
+  Serial.print(B255);  
+  Serial.println();
+#endif
 
     // zkonvertujeme do rozsahu 0 - 255.
     // O gama korekci se postara primo funkce DisplayRGB255:
-    DisplayRGB255(
-        trunc(R * 255 + 0.5), 
-        trunc(G * 255 + 0.5), 
-        trunc(B * 255 + 0.5)
-    );
+    DisplayRGB255(R255, G255, B255);
 };
 
 
@@ -188,7 +236,7 @@ void setup() {
   pinMode(sensorPinSaturation, INPUT);  
 
 #ifdef DEBUG
-  Serial.begin(9600);
+  Serial.begin(38400);
 #endif
 
   // KALIBRACE:
@@ -234,27 +282,35 @@ void setup() {
 void loop()  { 
   int tmpval;
   
-  tmpval = 1023 - analogRead(sensorPinHue);  // 0-1023
-  int Hue = digitalSmooth(tmpval, SmoothArrayHue);
   tmpval = 1023 - analogRead(sensorPinLightness);  // 0 - 1023
-  int Lightness = digitalSmooth(tmpval, SmoothArrayLightness);  
-  tmpval = 1023 - analogRead(sensorPinSaturation);   // 0 - 1023
-  int Saturation = digitalSmooth(tmpval, SmoothArraySaturation);
+  int Lightness = digitalSmooth(tmpval, SmoothArrayLightness, &SmoothCounterLightness);  
+  tmpval =  analogRead(sensorPinSaturation);   // 0 - 1023
+  int Saturation = digitalSmooth(tmpval, SmoothArraySaturation, &SmoothCounterSaturation);
+  tmpval = 1023 - analogRead(sensorPinHue);  // 0-1023
+  int Hue = digitalSmooth(tmpval, SmoothArrayHue, &SmoothCounterHue);
 
-  dbg("Hue=%d, Light=%d, Sat=%d\n", Hue, Lightness, Saturation);
+//  dbg("Hue=%d, Light=%d, Sat=%d\n", Hue, Lightness, Saturation);
 
   DisplayHSV(
     (float)Hue/1023*360,  
     ((float)Saturation)/1023,
     ((float)Lightness)/1023   
   );
+#ifdef DEBUG  
   delay(5);
+#else
+  delay(5);
+#endif
+  
   
   if (Lightness > 5) {  // rozsviceno, aspon trochu
     zhasnuto_kdy = millis();
   };
   if ((millis() - zhasnuto_kdy) > (1000L * 60 * 5)) {   // je zhasnuto dele nez 5 minut, uspim se, at setrim baterky
     dbg("sleep");
+    DisplayHSV(0, 0, 1.0); delay(100);  DisplayHSV(0, 1.0, 0.0); delay(500);
+    DisplayHSV(0, 0, 1.0); delay(100);  DisplayHSV(0, 1.0, 0.0); delay(500);
+    DisplayHSV(0, 0, 1.0); delay(100);  DisplayHSV(0, 1.0, 0.0); delay(500);
     // uspime se, definitivne a trvale, tzn. je potreba odpojit baterku aby se obvod znovu probudil:
     set_sleep_mode(SLEEP_MODE_PWR_DOWN);    // kompletni powersave
     sleep_enable();     // pojistka, defaultne je totiz sleep zakazany a bez tohoto volani se neprovede
