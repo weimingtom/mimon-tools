@@ -1,6 +1,9 @@
 /* vim: set expandtab tabstop=2 shiftwidth=2 filetype=c: */
 
 #include <avr/sleep.h>
+#include <stdio.h>
+
+// #define DEBUG 1
 
 const int sensorPinHue = 0;
 const int sensorPinLightness = 2;
@@ -22,9 +25,16 @@ int SmoothArraySaturation [filterSamples];
 
 unsigned long zhasnuto_kdy = 0; // jak dlouho uz je stazeny potik s jasem na 0?
 
-//int sensorValue = 0;  // variable to store the value coming from the sensor
-//int lastSensor = 0;
-//int auxValue = 0;
+void dbg(char *fmt, ... ) {
+#ifdef DEBUG
+        char tmp[200]; // resulting string limited to 200 chars
+        va_list args;
+        va_start (args, fmt );
+        vsnprintf(tmp, 200, fmt, args);
+        va_end (args);
+        Serial.print(tmp);
+#endif
+}
 
 int digitalSmooth(int rawIn, int *sensSmoothArray){     // "int *sensSmoothArray" passes an array to the function - the asterisk indicates the array name is a pointer
   int j, k, temp, top, bottom;
@@ -84,19 +94,19 @@ int digitalSmooth(int rawIn, int *sensSmoothArray){     // "int *sensSmoothArray
 
 // int nebo byte?
 int gamma_correct(int vstup, double gamma) {
-  // FIXME: prozatim
-return vstup;  
      return (int)(0.5 + 255.0 * pow(vstup/255.0, gamma));
 };
 
 void DisplayRGB255(int r, int g, int b) {
-    r = gamma_correct(r, gammaR);
-    g = gamma_correct(g, gammaG);
-    b = gamma_correct(b, gammaB);
+  int r2 = gamma_correct(r, gammaR);
+  int g2 = gamma_correct(g, gammaG);
+  int b2 = gamma_correct(b, gammaB);
 
-  analogWrite(ledPinR, r);
-  analogWrite(ledPinG, g);         
-  analogWrite(ledPinB, b);  
+  dbg("RGB(%d, %d, %d) corrected to (%d, %d, %d)\n", r, g, b, r2, g2, b2);
+
+  analogWrite(ledPinR, r2);
+  analogWrite(ledPinG, g2);         
+  analogWrite(ledPinB, b2);  
 };
 
 // DisplayHSV(0-360, 0.0-1.0, 0.0-1.0);
@@ -145,29 +155,18 @@ void DisplayHSV(int Hue360, float Saturation, float Value) {
         // vyjimka, tohle nesmi nastat (a nebo je to 6, co je taky OK, proto "<=" u predchozi podminky
     };
 
-//Serial.print("H=");
-//Serial.print(Hue360);
-//Serial.print(", Hseg=");
-//Serial.print(Hseg);
-//Serial.print(", Sat=");
-//Serial.print(Saturation);
-//Serial.print(", Value=");
-//Serial.print(Value);
-//Serial.print(", Chroma=");
-//Serial.print(Chroma);
-//Serial.print(", R=");
-//Serial.print(R);
-//Serial.print(", G=");
-//Serial.print(G);
-//Serial.print(", B=");
-//Serial.print(B);
-//Serial.println();
-
     // Finally, we can find R, G, and B by adding the same amount to each component, to match value:
     float m = Value - Chroma;
     R += m;
     G += m;
     B += m;
+
+
+    dbg("HSV(%d, %f, %f): Hseg=%f, Chroma=%f, X=%f, m=%f, RGB=%d/%d/%d\n", 
+      Hue360, Saturation, Value,
+      Hseg, Chroma, X, m,
+      R, G, B
+     );
 
     // zkonvertujeme do rozsahu 0 - 255.
     // O gama korekci se postara primo funkce DisplayRGB255:
@@ -187,7 +186,12 @@ void setup() {
   pinMode(sensorPinHue, INPUT);  
   pinMode(sensorPinLightness, INPUT);  
   pinMode(sensorPinSaturation, INPUT);  
- 
+
+#ifdef DEBUG
+  Serial.begin(9600);
+#endif
+
+  // KALIBRACE:
   // potiky jsou zapojene obracene, takze 1023=vlevo a 0=vpravo)
   if ((analogRead(sensorPinHue) < 5)
       &&
@@ -220,22 +224,11 @@ void setup() {
 //  
 //  // testy:
 //  delay(1000);
-  DisplayHSV(0, 1.0, 1.0);  // cervena
-  delay(500);
-  DisplayHSV(0, 1.0, 0.5);  // cervena
-  delay(500);
-  DisplayHSV(120, 1.0, 1.0);    // zelena
-  delay(500);
-  DisplayHSV(120, 1.0, 0.5);    // zelena
-  delay(500);
-  DisplayHSV(240, 1.0, 1.0);    // modra
-  delay(500);
-  DisplayHSV(240, 1.0, 0.5);    // modra
-  delay(500);
+  for (int i=0; i<360; i+=60) {
+    DisplayHSV(i, 1.0, 1.0);  // cervena
+    delay(200);
+  };
   DisplayHSV(0, 0.0, 0.0);  // cerna
-
-
-//  Serial.begin(9600);
 }
 
 void loop()  { 
@@ -248,20 +241,8 @@ void loop()  {
   tmpval = 1023 - analogRead(sensorPinSaturation);   // 0 - 1023
   int Saturation = digitalSmooth(tmpval, SmoothArraySaturation);
 
-//
-//  Serial.print("hue=");
-//  Serial.print(Hue);
-//  Serial.print(", Light=");
-//  Serial.print(Lightness);
-//  Serial.print(", Sat=");
-//  Serial.print(Saturation);  
-//  Serial.print(", faze=");
-//  Serial.print(faze);  
-//  Serial.print(", value=");
-//  Serial.print(value);  
-//  Serial.println();  
+  dbg("Hue=%d, Light=%d, Sat=%d\n", Hue, Lightness, Saturation);
 
-  // zobraz(faze, (float)value, ((float)Lightness)/1023, ((float)Saturation)/1023);
   DisplayHSV(
     (float)Hue/1023*360,  
     ((float)Saturation)/1023,
@@ -269,10 +250,11 @@ void loop()  {
   );
   delay(5);
   
-  if (Lightness > 0) {  // rozsviceno
+  if (Lightness > 5) {  // rozsviceno, aspon trochu
     zhasnuto_kdy = millis();
   };
   if ((millis() - zhasnuto_kdy) > (1000L * 60 * 5)) {   // je zhasnuto dele nez 5 minut, uspim se, at setrim baterky
+    dbg("sleep");
     // uspime se, definitivne a trvale, tzn. je potreba odpojit baterku aby se obvod znovu probudil:
     set_sleep_mode(SLEEP_MODE_PWR_DOWN);    // kompletni powersave
     sleep_enable();     // pojistka, defaultne je totiz sleep zakazany a bez tohoto volani se neprovede
@@ -281,6 +263,7 @@ void loop()  {
     // Po probuzeni by pak pokracoval odtud:
     // FIXME (ale bylo by potreba ho nejdriv NEJAK probudit :-))
     sleep_disable();    // zakazeme spanek, at se omylem zase hned neuspi
+    dbg("wakeup");
     // a pokracujeme dal ...
             
     // FIXME co takhle probouzeni casovacem?
@@ -289,6 +272,5 @@ void loop()  {
     zhasnuto_kdy = millis();
   };
 }
-
 
 
