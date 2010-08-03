@@ -2,6 +2,7 @@
 
 #include <avr/sleep.h>
 #include <stdio.h>
+#include <DigitalSmooth.h>
 
 // #define DEBUG 1
 #define USE_GAMMMA 1
@@ -32,75 +33,11 @@ const float gammaB = 1.1;
 #endif
 
 #define filterSamples 13            // filterSamples should  be an odd number, no smaller than 3
-int SmoothArrayHue [filterSamples];   // array for holding raw sensor values for sensor1 
-int SmoothCounterHue = 0;
-int SmoothArrayLightness [filterSamples];
-int SmoothCounterLightness = 0;
-int SmoothArraySaturation [filterSamples];
-int SmoothCounterSaturation = 0;
+DigitalSmooth hue_avg = DigitalSmooth(filterSamples);
+DigitalSmooth lightness_avg = DigitalSmooth(filterSamples);
+DigitalSmooth saturation_avg = DigitalSmooth(filterSamples);
 
 unsigned long zhasnuto_kdy = 0; // jak dlouho uz je stazeny potik s jasem na 0?
-
-int digitalSmooth(int rawIn, int *sensSmoothArray, int *sensCounter) {     // "int *sensSmoothArray" passes an array to the function - the asterisk indicates the array name is a pointer
-  int j, k, temp, top, bottom;
-  long total;
-  
- // static int raw[filterSamples];
-  static int sorted[filterSamples];
-  boolean done;
-
-  *sensCounter = (*sensCounter + 1) % filterSamples;    // increment counter and roll over if necc. -  % (modulo operator) rolls over variable
-  sensSmoothArray[*sensCounter] = rawIn;                 // input new data into the oldest slot
-
-  // Serial.print("raw = ");
-
-  for (j=0; j<filterSamples; j++){     // transfer data array into anther array for sorting and averaging
-    sorted[j] = sensSmoothArray[j];
-  }
-
-  done = 0;                // flag to know when we're done sorting              
-  while(done != 1){        // simple swap sort, sorts numbers from lowest to highest
-    done = 1;
-    for (j = 0; j < (filterSamples - 1); j++){
-      if (sorted[j] > sorted[j + 1]){     // numbers are out of order - swap
-        temp = sorted[j + 1];
-        sorted [j+1] =  sorted[j] ;
-        sorted [j] = temp;
-        done = 0;
-      }
-    }
-  }
-
-/*
-  for (j = 0; j < (filterSamples); j++){    // print the array to debug
-    Serial.print(sorted[j]); 
-    Serial.print("   "); 
-  }
-  Serial.println();
-*/
-
-  // throw out top and bottom 15% of samples - limit to throw out at least one from top and bottom
-  bottom = max(((filterSamples * 15)  / 100), 1); 
-  top = min((((filterSamples * 85) / 100) + 1  ), (filterSamples - 1));   // the + 1 is to make up for asymmetry caused by integer rounding
-  k = 0;
-  total = 0;
-  for ( j = bottom; j< top; j++){
-    total += sorted[j];  // total remaining indices
-    k++; 
-    // Serial.print(sorted[j]); 
-    // Serial.print("   "); 
-  }
-
- int ret = total/k; 
- 
-// dbg("average(");
-// dbg(rawIn);
-// dbg(")=");
-// dbg(ret);
-// dbg("\n");
- 
- return ret;
-};
 
 // int nebo byte?
 #ifdef USE_GAMMA
@@ -280,14 +217,9 @@ void setup() {
 }
 
 void loop()  { 
-  int tmpval;
-  
-  tmpval = 1023 - analogRead(sensorPinLightness);  // 0 - 1023
-  int Lightness = digitalSmooth(tmpval, SmoothArrayLightness, &SmoothCounterLightness);  
-  tmpval =  analogRead(sensorPinSaturation);   // 0 - 1023
-  int Saturation = digitalSmooth(tmpval, SmoothArraySaturation, &SmoothCounterSaturation);
-  tmpval = 1023 - analogRead(sensorPinHue);  // 0-1023
-  int Hue = digitalSmooth(tmpval, SmoothArrayHue, &SmoothCounterHue);
+  int Lightness  =  lightness_avg.add(1023 - analogRead(sensorPinLightness));
+  int Saturation = saturation_avg.add(analogRead(sensorPinSaturation));
+  int Hue        =        hue_avg.add(1023 - analogRead(sensorPinHue));
 
 //  dbg("Hue=%d, Light=%d, Sat=%d\n", Hue, Lightness, Saturation);
 
@@ -296,18 +228,14 @@ void loop()  {
     ((float)Saturation)/1023,
     ((float)Lightness)/1023   
   );
-#ifdef DEBUG  
   delay(5);
-#else
-  delay(5);
-#endif
-  
   
   if (Lightness > 5) {  // rozsviceno, aspon trochu
     zhasnuto_kdy = millis();
   };
   if ((millis() - zhasnuto_kdy) > (1000L * 60 * 5)) {   // je zhasnuto dele nez 5 minut, uspim se, at setrim baterky
     dbg("sleep");
+    // naposledy zablikame:
     DisplayHSV(0, 0, 1.0); delay(100);  DisplayHSV(0, 1.0, 0.0); delay(500);
     DisplayHSV(0, 0, 1.0); delay(100);  DisplayHSV(0, 1.0, 0.0); delay(500);
     DisplayHSV(0, 0, 1.0); delay(100);  DisplayHSV(0, 1.0, 0.0); delay(500);
@@ -328,5 +256,4 @@ void loop()  {
     zhasnuto_kdy = millis();
   };
 }
-
 
